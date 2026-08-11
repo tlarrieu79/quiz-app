@@ -3,29 +3,137 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Espace Stagiaire - Génie</title>
+  <title>Espace Stagiaire - QCM du Génie</title>
   <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; background: #121212; color: #ffffff; display: flex; justify-content: center; }
-    .card { background: #1e1e1e; padding: 30px; border-radius: 16px; border: 2px solid #dc3545; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 8px 16px rgba(0,0,0,0.5); }
-    h1 { color: #dc3545; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
-    input, button { padding: 14px; margin: 10px 0; width: 100%; box-sizing: border-box; border-radius: 8px; border: 1px solid #444; font-size: 16px; background: #2b2b2b; color: #fff; }
-    button { background: #dc3545; color: white; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-    button:hover { background: #bd2130; }
+    /* Charte Graphique du Génie : Rouge & Noir */
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      padding: 20px; 
+      background: #121212; /* Noir Carbone */
+      color: #ffffff; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center;
+      min-height: 90vh;
+    }
+    .card { 
+      background: #1a1a1a; /* Fond de carte sombre */
+      padding: 30px; 
+      border-radius: 16px; 
+      border: 2px solid #b30000; /* Rouge Génie */
+      box-shadow: 0 8px 24px rgba(179, 0, 0, 0.25); /* Halo rouge discret */
+      width: 100%; 
+      max-width: 460px; 
+      text-align: center; 
+    }
+    h1 { 
+      color: #b30000; 
+      margin-bottom: 20px; 
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    input, button { 
+      padding: 14px; 
+      margin: 10px 0; 
+      width: 100%; 
+      box-sizing: border-box; 
+      border-radius: 8px; 
+      font-size: 16px; 
+    }
+    input {
+      background: #2a2a2a;
+      color: #ffffff;
+      border: 1px solid #444;
+      transition: 0.2s;
+    }
+    input:focus {
+      border-color: #b30000;
+      outline: none;
+    }
+    button { 
+      background: #b30000; 
+      color: white; 
+      border: none; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      text-transform: uppercase;
+    }
+    button:hover { 
+      background: #e50914; 
+      box-shadow: 0 0 12px rgba(229, 9, 20, 0.4);
+    }
     .screen { display: none; }
     .active { display: block; }
-    .option-btn { background: #2b2b2b; color: #ffffff; border: 2px solid #444; display: none; }
-    .option-btn:hover { background: #dc3545; border-color: #dc3545; }
-    #timer-display { font-size: 24px; font-weight: bold; color: #dc3545; margin: 15px 0; }
     
-    .home-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
-    .home-tab-btn { flex: 1; padding: 10px; border: 1px solid #dc3545; background: #1e1e1e; color: #dc3545; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase; }
-    .home-tab-btn.active { background: #dc3545; color: white; }
+    /* Boutons de réponse QCM */
+    .option-btn { 
+      background: #2a2a2a; 
+      color: #ffffff; 
+      border: 2px solid #444; 
+      transition: 0.2s; 
+      display: none; 
+      text-align: left;
+      padding-left: 20px;
+    }
+    .option-btn:hover { 
+      background: #3a3a3a; 
+      border-color: #b30000; 
+    }
+    #timer-display { font-size: 26px; font-weight: bold; color: #e50914; margin: 15px 0; letter-spacing: 1px; }
     
+    /* Barre d'onglets de l'accueil */
+    .home-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+    .home-tab-btn { 
+      flex: 1; 
+      padding: 12px; 
+      border: none; 
+      background: #2a2a2a; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      font-size: 14px; 
+      color: #888; 
+      text-transform: uppercase;
+    }
+    .home-tab-btn.active { 
+      background: #b30000; 
+      color: white; 
+    }
+    
+    /* Liste d'entraînement */
     .qcm-training-list { list-style: none; padding: 0; margin-top: 15px; }
-    .qcm-training-item { background: #2b2b2b; border: 1px solid #444; padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; font-weight: bold; text-align: left; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #dc3545; }
-    .qcm-training-item:hover { background: #3a3a3a; }
+    .qcm-training-item { 
+      background: #2a2a2a; 
+      border: 1px solid #444; 
+      padding: 14px; 
+      margin: 8px 0; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      text-align: left; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      transition: 0.2s;
+    }
+    .qcm-training-item:hover { 
+      background: #333; 
+      border-color: #b30000;
+    }
     
-    .report-container { text-align: left; margin-top: 20px; padding: 15px; background: #2b2b2b; border-radius: 8px; max-height: 250px; overflow-y: auto; font-size: 14px; border: 1px solid #444; }
+    /* Rapport de correction final */
+    .report-container { 
+      text-align: left; 
+      margin-top: 25px; 
+      padding: 15px; 
+      background: #2a2a2a; 
+      border-radius: 8px; 
+      border: 1px solid #444;
+      max-height: 250px; 
+      overflow-y: auto; 
+      font-size: 14px; 
+    }
     .correct-ans { color: #28a745; font-weight: bold; }
     .wrong-ans { color: #dc3545; font-weight: bold; }
   </style>
@@ -36,26 +144,395 @@
     <!-- ÉCRAN 1 : ACCUEIL -->
     <div id="screen-home" class="screen active">
       <div class="home-tabs">
-        <button class="home-tab-btn active" id="btn-tab-live">QCM Direct 🎮</button>
+        <button class="home-tab-btn active" id="btn-tab-live">QCM en direct 🎮</button>
         <button class="home-tab-btn" id="btn-tab-train">Entraînement 📚</button>
       </div>
 
-      <!-- Mode Live -->
+      <!-- Mode Live (Connexion via code) -->
       <div id="panel-live" class="active-panel">
         <h1 id="login-title">Rejoindre la Session</h1>
         <input type="text" id="sessionCodeInput" placeholder="Code de session">
         <input type="text" id="traineeNameInputLive" placeholder="Votre Prénom / Nom">
-        <button id="joinLiveBtn">Se connecter au Direct</button>
+        <button id="joinLiveBtn" style="background:#b30000;">Rejoindre la session</button>
       </div>
 
-      <!-- Mode Entraînement -->
+      <!-- Mode Entraînement libre -->
       <div id="panel-train" style="display:none;">
         <h1>Entraînement Libre</h1>
-        <p>Entrez votre nom pour commencer :</p>
+        <p style="font-size:15px; color:#aaa; margin-bottom:10px;">Entrez votre nom pour commencer :</p>
         <input type="text" id="traineeNameInputTrain" placeholder="Votre Prénom / Nom">
-        <p style="font-size: 14px; color:#aaa; font-style:italic;">Choisissez l'un des QCM actuellement disponibles :</p>
+        <p style="font-size: 13px; color:#888; font-style:italic; margin-top:15px;">Sélectionnez l'un des QCM ouverts à l'entraînement :</p>
         <ul id="trainingQcmList" class="qcm-training-list"></ul>
       </div>
     </div>
 
-    <!-- ÉCRAN 2 : SALLE D'ATTAucune réponse
+    <!-- ÉCRAN 2 : SALLE D'ATTENTE -->
+    <div id="screen-wait" class="screen">
+      <h1>Section connectée ⏳</h1>
+      <p>Bienvenue stagiaire <span id="displayName" style="font-weight: bold; color: #b30000;"></span> !</p>
+      <p style="color: #aaa; font-size: 15px;">Le formateur va lancer le QCM. Tenez-vous prêt...</p>
+    </div>
+
+    <!-- ÉCRAN 3 : LA QUESTION -->
+    <div id="screen-question" class="screen">
+      <div id="timer-display">30s</div>
+      <h2 id="question-text" style="color: #fff; font-size: 20px;">Chargement...</h2>
+      <button id="btn-optA" class="option-btn">Option A</button>
+      <button id="btn-optB" class="option-btn">Option B</button>
+      <button id="btn-optC" class="option-btn">Option C</button>
+      <button id="btn-optD" class="option-btn">Option D</button>
+      <p id="wait-next-msg" style="display: none; color: #aaa; font-style: italic; margin-top:15px;">Réponse validée. En attente de la prochaine question...</p>
+    </div>
+
+    <!-- ÉCRAN 4 : CLASSEMENT ET RAPPORT DE CORRECTION -->
+    <div id="screen-end" class="screen">
+      <h1>Débriefing 🏆</h1>
+      <p>Votre score final : <strong style="font-size:24px; color:#b30000;"><span id="finalScore">0</span> / 1000</strong></p>
+      
+      <div class="report-container">
+        <h3 style="color:#fff; margin-top:0; border-bottom:1px solid #444; padding-bottom:5px;">Vos résultats :</h3>
+        <div id="reponses-report-list"></div>
+      </div>
+
+      <!-- Podium en direct (Live uniquement) -->
+      <div id="liveLeaderboardBox" style="display:none; margin-top:20px; border-top:1px solid #444; padding-top:15px;">
+        <h3 style="color:#b30000; margin-top:0;">Classement Général :</h3>
+        <ul id="leaderboard-list" style="list-style: none; padding: 0; font-size: 16px; text-align: left;"></ul>
+      </div>
+
+      <button id="homeBtn" style="background:#555; margin-top:20px;">Retour au menu</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, collection, getDocs, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB5_JJfUZvEtgdvgC3RN655uNrHNQS4zJA",
+      authDomain: "pse-b5bd5.firebaseapp.com",
+      projectId: "pse-b5bd5",
+      storageBucket: "pse-b5bd5.firebasestorage.app",
+      messagingSenderId: "660081084756",
+      appId: "1:660081084756:web:940b2d2a7ec939d2ac20c1"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentSessionId = "";
+    let participantId = "";
+    let traineeName = "";
+    let scoreTotal = 0;
+    let listeQuestions = [];
+    let reponsesEnregistrees = {};
+    let isLiveMode = true;
+    let activeQuestionIndex = 0;
+    let aRepondu = false;
+
+    // --- QR CODE AUTO-REDIRECT ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionFromUrl = urlParams.get('session');
+    if (sessionFromUrl) {
+      document.getElementById("sessionCodeInput").value = sessionFromUrl;
+      document.getElementById("sessionCodeInput").style.display = "none";
+      document.getElementById("login-title").innerText = "Saisissez votre prénom ! 👇";
+      switchTabMenu("live");
+    }
+
+    function switchTabMenu(mode) {
+      if (mode === "live") {
+        document.getElementById("btn-tab-live").classList.add("active");
+        document.getElementById("btn-tab-train").classList.remove("active");
+        document.getElementById("panel-live").style.display = "block";
+        document.getElementById("panel-train").style.display = "none";
+        isLiveMode = true;
+      } else {
+        document.getElementById("btn-tab-live").classList.remove("active");
+        document.getElementById("btn-tab-train").classList.add("active");
+        document.getElementById("panel-live").style.display = "none";
+        document.getElementById("panel-train").style.display = "block";
+        isLiveMode = false;
+        chargerQcmsEntrainement();
+      }
+    }
+
+    document.getElementById("btn-tab-live").addEventListener("click", () => switchTabMenu("live"));
+    document.getElementById("btn-tab-train").addEventListener("click", () => switchTabMenu("train"));
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // --- REJOINDRE LE LIVE ---
+    document.getElementById("joinLiveBtn").addEventListener("click", async () => {
+      const code = document.getElementById("sessionCodeInput").value.trim();
+      const name = document.getElementById("traineeNameInputLive").value.trim();
+
+      if (!code || !name) {
+        alert("Saisissez le code de session et votre nom !");
+        return;
+      }
+
+      try {
+        const sessionRef = doc(db, "sessions", code);
+        const sessionSnap = await getDoc(sessionRef);
+
+        if (!sessionSnap.exists()) {
+          alert("Cette session n'existe pas !");
+          return;
+        }
+
+        const qcmId = sessionSnap.data().qcmId;
+        const userCredential = await signInAnonymously(auth);
+        participantId = userCredential.user.uid;
+        currentSessionId = code;
+        traineeName = name;
+        scoreTotal = 0;
+        reponsesEnregistrees = {};
+
+        document.getElementById("displayName").innerText = name;
+        showScreen("screen-wait");
+
+        await setDoc(doc(db, "sessions", currentSessionId, "participants", participantId), {
+          nom: traineeName,
+          score: 0,
+          reponses: {}
+        });
+
+        const qcmsSnap = await getDocs(collection(db, "qcms", qcmId, "questions"));
+        listeQuestions = qcmsSnap.docs.map(doc => doc.data());
+
+        ecouterSessionLive();
+
+      } catch (e) { alert("Erreur: " + e.message); }
+    });
+
+    function ecouterSessionLive() {
+      onSnapshot(doc(db, "sessions", currentSessionId), (docSnap) => {
+        if (!docSnap.exists()) return;
+        const sessionData = docSnap.data();
+
+        if (sessionData.statut === "en_cours") {
+          const index = sessionData.questionActive;
+          if (index < listeQuestions.length) {
+            afficherQuestion(index);
+          }
+        } else if (sessionData.statut === "terminee") {
+          afficherClassementEtCorrectionFinal();
+        }
+      });
+    }
+
+    // --- CHARGER L'ENTRAINEMENT LIBRE ---
+    async function chargerQcmsEntrainement() {
+      const q = query(collection(db, "qcms"), where("actifPourEntrainement", "==", true));
+      try {
+        const querySnap = await getDocs(q);
+        const list = document.getElementById("trainingQcmList");
+        list.innerHTML = "";
+
+        querySnap.forEach((docSnap) => {
+          const qcm = docSnap.data();
+          const li = document.createElement("li");
+          li.className = "qcm-training-item";
+          li.innerHTML = `<span>📖 ${qcm.titre}</span> <button style="width:auto; margin:0; padding:6px 12px; font-size:12px; background:#b30000;">Lancer</button>`;
+          li.onclick = () => démarrerEntrainementSolo(docSnap.id);
+          list.appendChild(li);
+        });
+
+        if (list.innerHTML === "") {
+          list.innerHTML = "<p style='color:#888; font-size:14px;'>Aucun QCM d'entraînement ouvert par votre formateur.</p>";
+        }
+      } catch (e) { console.error(e); }
+    }
+
+    async function démarrerEntrainementSolo(qcmId) {
+      const name = document.getElementById("traineeNameInputTrain").value.trim();
+      if (!name) {
+        alert("Entrez votre Prénom avant de lancer un entraînement !");
+        return;
+      }
+
+      try {
+        await signInAnonymously(auth);
+        traineeName = name;
+        scoreTotal = 0;
+        reponsesEnregistrees = {};
+        activeQuestionIndex = 0;
+
+        const qcmsSnap = await getDocs(collection(db, "qcms", qcmId, "questions"));
+        listeQuestions = qcmsSnap.docs.map(doc => doc.data());
+
+        if (listeQuestions.length === 0) {
+          alert("Ce QCM ne contient aucune question !");
+          return;
+        }
+
+        afficherQuestion(activeQuestionIndex);
+      } catch (e) { alert(e.message); }
+    }
+
+    // --- MOTEUR DE QUESTION & MINUTEUR CONTINU ---
+    let intervalleMinuteur;
+    function afficherQuestion(index) {
+      showScreen("screen-question");
+      document.getElementById("wait-next-msg").style.display = "none";
+      
+      document.getElementById("btn-optA").style.display = "none";
+      document.getElementById("btn-optB").style.display = "none";
+      document.getElementById("btn-optC").style.display = "none";
+      document.getElementById("btn-optD").style.display = "none";
+
+      const q = listeQuestions[index];
+      document.getElementById("question-text").innerText = q.question;
+
+      if (q.options[0]) {
+        document.getElementById("btn-optA").style.display = "block";
+        document.getElementById("btn-optA").innerText = q.options[0];
+      }
+      if (q.options[1]) {
+        document.getElementById("btn-optB").style.display = "block";
+        document.getElementById("btn-optB").innerText = q.options[1];
+      }
+      if (q.options[2]) {
+        document.getElementById("btn-optC").style.display = "block";
+        document.getElementById("btn-optC").innerText = q.options[2];
+      }
+      if (q.options[3]) {
+        document.getElementById("btn-optD").style.display = "block";
+        document.getElementById("btn-optD").innerText = q.options[3];
+      }
+
+      let tempsRestant = q.tempsLimite;
+      document.getElementById("timer-display").innerText = `${tempsRestant}s`;
+      aRepondu = false;
+
+      clearInterval(intervalleMinuteur);
+      intervalleMinuteur = setInterval(() => {
+        tempsRestant--;
+        document.getElementById("timer-display").innerText = `${tempsRestant}s`;
+
+        if (tempsRestant <= 0) {
+          clearInterval(intervalleMinuteur);
+          if (!aRepondu) {
+            validerReponse(null, q, index, 0);
+          }
+        }
+      }, 1000);
+
+      document.getElementById("btn-optA").onclick = () => { validerReponse("A", q, index, tempsRestant); };
+      document.getElementById("btn-optB").onclick = () => { validerReponse("B", q, index, tempsRestant); };
+      document.getElementById("btn-optC").onclick = () => { validerReponse("C", q, index, tempsRestant); };
+      document.getElementById("btn-optD").onclick = () => { validerReponse("D", q, index, tempsRestant); };
+    }
+
+    async function validerReponse(choix, question, index, tempsRestant) {
+      aRepondu = true; // Empêche le minuteur de valider à la fin du temps écoulé
+
+      document.getElementById("btn-optA").style.display = "none";
+      document.getElementById("btn-optB").style.display = "none";
+      document.getElementById("btn-optC").style.display = "none";
+      document.getElementById("btn-optD").style.display = "none";
+      document.getElementById("wait-next-msg").style.display = "block";
+
+      const N = listeQuestions.length;
+      const scoreMaximumParQuestion = 1000 / N;
+
+      let pointsGagnes = 0;
+      const correct = (choix === question.reponseCorrecte);
+      if (correct) {
+        const base = scoreMaximumParQuestion * 0.5;
+        const vitesse = scoreMaximumParQuestion * 0.5 * (tempsRestant / question.tempsLimite);
+        pointsGagnes = Math.round(base + vitesse);
+      }
+
+      scoreTotal += pointsGagnes;
+
+      reponsesEnregistrees[index] = {
+        question: question.question,
+        reponseChoisie: choix || "Aucune réponse",
+        reponseCorrecte: question.reponseCorrecte,
+        correct: correct
+      };
+
+      if (isLiveMode) {
+        await setDoc(doc(db, "sessions", currentSessionId, "participants", participantId), {
+          nom: traineeName,
+          score: scoreTotal,
+          reponses: reponsesEnregistrees
+        }, { merge: true });
+      } else {
+        // En entraînement autonome, pas besoin d'attendre la fin du timer !
+        clearInterval(intervalleMinuteur);
+        setTimeout(() => {
+          avancerEntrainementSolo();
+        }, 2000);
+      }
+    }
+
+    function avancerEntrainementSolo() {
+      activeQuestionIndex++;
+      if (activeQuestionIndex < listeQuestions.length) {
+        afficherQuestion(activeQuestionIndex);
+      } else {
+        afficherClassementEtCorrectionFinal();
+      }
+    }
+
+    async function afficherClassementEtCorrectionFinal() {
+      showScreen("screen-end");
+      document.getElementById("finalScore").innerText = scoreTotal;
+
+      const listCorrection = document.getElementById("reponses-report-list");
+      listCorrection.innerHTML = "";
+
+      Object.keys(reponsesEnregistrees).forEach((index) => {
+        const r = reponsesEnregistrees[index];
+        const div = document.createElement("div");
+        div.style.borderBottom = "1px solid #333";
+        div.style.padding = "8px 0";
+
+        const textStyle = r.correct ? 'class="correct-ans"' : 'class="wrong-ans"';
+        const icon = r.correct ? '✅' : '❌';
+
+        div.innerHTML = `
+          <strong>${icon} Question ${parseInt(index) + 1} :</strong> ${r.question}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Choix : <span ${textStyle}>${r.reponseChoisie}</span> (Correct : ${r.reponseCorrecte})
+        `;
+        listCorrection.appendChild(div);
+      });
+
+      if (isLiveMode) {
+        document.getElementById("liveLeaderboardBox").style.display = "block";
+        const listContainer = document.getElementById("leaderboard-list");
+        listContainer.innerHTML = "Chargement du classement...";
+
+        const participantsRef = collection(db, "sessions", currentSessionId, "participants");
+        const q = query(participantsRef, orderBy("score", "desc"));
+        const querySnap = await getDocs(q);
+
+        listContainer.innerHTML = "";
+        let position = 1;
+        querySnap.forEach((doc) => {
+          const data = doc.data();
+          const li = document.createElement("li");
+          li.style.margin = "8px 0";
+          li.innerHTML = `<strong>#${position}</strong> - ${data.nom} : 🏆 ${data.score} / 1000 pts`;
+          listContainer.appendChild(li);
+          position++;
+        });
+      } else {
+        document.getElementById("liveLeaderboardBox").style.display = "none";
+      }
+    }
+
+    document.getElementById("homeBtn").addEventListener("click", () => {
+      window.location.href = window.location.pathname;
+    });
+  </script>
+</body>
+</html>
