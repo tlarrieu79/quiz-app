@@ -37,6 +37,25 @@
     .file-name { color: #ccc; font-size: 14px; word-break: break-word; flex: 1; }
     .file-size { color: #888; font-size: 12px; margin: 0 10px; }
     .no-files { color: #888; font-size: 13px; font-style: italic; text-align: center; padding: 10px; }
+    
+    /* QCM avec questions masquées */
+    .qcm-header { background: #2b2b2b; border: 1px solid #444; padding: 15px; margin: 10px 0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .qcm-header:hover { background: #333; }
+    .qcm-title { font-weight: bold; color: #dc3545; font-size: 16px; }
+    .qcm-toggle { color: #888; font-size: 20px; }
+    .questions-list { display: none; margin-top: 15px; padding-left: 15px; background: #1a1a1a; border-radius: 6px; padding: 15px; border: 1px solid #333; }
+    .questions-list.visible { display: block; }
+    .question-item { background: #2b2b2b; padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 4px solid #17a2b8; }
+    .question-number { color: #888; font-size: 12px; }
+    .question-bonus { color: #ffc107; margin-left: 10px; font-weight: bold; }
+    
+    /* Checkbox style */
+    .checkbox-group { display: flex; gap: 20px; margin: 10px 0; }
+    .checkbox-group label { display: flex; align-items: center; cursor: pointer; }
+    .checkbox-group input[type="checkbox"] { margin-right: 8px; width: auto; }
+    
+    /* Réponses correctes multiples */
+    .correct-answers-info { background: #1e1e1e; padding: 8px; border-radius: 6px; margin: 8px 0; border-left: 3px solid #28a745; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -58,7 +77,7 @@
       <div class="tab-bar">
         <button class="tab-btn active" id="btn-tab-questions">Questions</button>
         <button class="tab-btn" id="btn-tab-sessions">Sessions</button>
-        <button class="tab-btn" id="btn-tab-documentation">📚 Documents</button>
+        <button class="tab-btn" id="btn-tab-documents">📚 Documents</button>
         <button class="tab-btn" id="btn-tab-history">Historique</button>
         <button class="tab-btn logout" id="btn-logout">Déconnexion</button>
       </div>
@@ -83,8 +102,21 @@
           <input type="text" id="optB" placeholder="Option B (Obligatoire)">
           <input type="text" id="optC" placeholder="Option C (Facultative)">
           <input type="text" id="optD" placeholder="Option D (Facultative)">
-          <input type="text" id="correctOpt" placeholder="Lettre de la bonne réponse (A, B, C ou D)">
+          
+          <label style="margin-top: 15px;">Sélectionnez les bonnes réponses :</label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" id="checkA"> A</label>
+            <label><input type="checkbox" id="checkB"> B</label>
+            <label><input type="checkbox" id="checkC"> C</label>
+            <label><input type="checkbox" id="checkD"> D</label>
+          </div>
+          
           <input type="number" id="timer" placeholder="Temps limite pour cette question (en secondes)">
+          
+          <div class="checkbox-group">
+            <label><input type="checkbox" id="isBonusQuestion"> ⭐ Question Bonus</label>
+          </div>
+          
           <input type="hidden" id="editingQuestionId" value="">
           
           <button id="saveBtn">Enregistrer la question</button>
@@ -140,7 +172,7 @@
       </div>
 
       <!-- ONGLET C : DOCUMENTS ET RÉFÉRENCES -->
-      <div id="tab-documentation" class="tab-content">
+      <div id="tab-documents" class="tab-content">
         <div class="box">
           <h2>Créer un nouveau dossier 📁</h2>
           <input type="text" id="folderNameInput" placeholder="Nom du dossier (ex: Références légales)">
@@ -170,7 +202,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, query, orderBy, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, listAll, getBytes, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { getStorage, ref, uploadBytes, listAll, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB5_JJfUZvEtgdvgC3RN655uNrHNQS4zJA",
@@ -241,7 +273,7 @@
 
     document.getElementById("btn-tab-questions").addEventListener("click", () => switchTab("tab-questions", "btn-tab-questions"));
     document.getElementById("btn-tab-sessions").addEventListener("click", () => switchTab("tab-sessions", "btn-tab-sessions"));
-    document.getElementById("btn-tab-documentation").addEventListener("click", () => switchTab("tab-documentation", "btn-tab-documentation"));
+    document.getElementById("btn-tab-documents").addEventListener("click", () => switchTab("tab-documents", "btn-tab-documents"));
     document.getElementById("btn-tab-history").addEventListener("click", () => switchTab("tab-history", "btn-tab-history"));
 
     document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -372,7 +404,7 @@
     window.ouvrirFichier = async (filePath) => {
       try {
         const fileRef = ref(storage, filePath);
-        const url = await fetch(`https://firebasestorage.googleapis.com/v0/b/pse-b5bd5.firebasestorage.app/o/${encodeURIComponent(filePath)}?alt=media`).then(r => r.url);
+        const url = await getDownloadURL(fileRef);
         window.open(url, '_blank');
       } catch (e) {
         alert("Erreur: " + e.message);
@@ -476,18 +508,38 @@
 
           const li = document.createElement("li");
           li.style.background = "#2b2b2b";
-          li.style.border = "1px solid #444";
-          li.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:5px;">
-              <strong>📁 ${qcm.titre}</strong>
-              <div>
-                <button onclick="window.toggleEntrainement('${docSnap.id}', ${qcm.actifPourEntrainement})" class="btn-action" style="background:${entrainementColor}; border:none;">${entrainementStatut}</button>
-                <button onclick="window.editerQcm('${docSnap.id}', '${cleanTitle}')" class="btn-action" style="background:#17a2b8;">Éditer</button>
-                <button onclick="window.supprimerQcm('${docSnap.id}')" class="btn-action" style="background:#dc3545;">Supprimer</button>
+          li.style.border = "none";
+          li.style.borderLeft = "none";
+          li.style.padding = "0";
+          li.style.margin = "10px 0";
+
+          const qcmHeader = document.createElement("div");
+          qcmHeader.className = "qcm-header";
+          qcmHeader.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <div style="display:flex; gap:10px; align-items:center;">
+                <span class="qcm-title">📁 ${qcm.titre}</span>
+                <button onclick="window.toggleEntrainement(event, '${docSnap.id}', ${qcm.actifPourEntrainement})" class="btn-action" style="background:${entrainementColor}; border:none; padding:4px 8px; font-size:12px;">${entrainementStatut}</button>
+                <button onclick="window.editerQcm('${docSnap.id}', '${cleanTitle}')" class="btn-action" style="background:#17a2b8; padding:4px 8px; font-size:12px;">Éditer</button>
+                <button onclick="window.supprimerQcm(event, '${docSnap.id}')" class="btn-action" style="background:#dc3545; padding:4px 8px; font-size:12px;">Supprimer</button>
               </div>
+              <span class="qcm-toggle">▼</span>
             </div>
-            <ul id="questions-list-${docSnap.id}" style="margin-top:10px; padding-left:15px; list-style:circle;"></ul>
           `;
+
+          const questionsDiv = document.createElement("div");
+          questionsDiv.className = "questions-list";
+          questionsDiv.id = `questions-${docSnap.id}`;
+
+          qcmHeader.addEventListener("click", (e) => {
+            if (!e.target.closest('button')) {
+              questionsDiv.classList.toggle("visible");
+              qcmHeader.querySelector('.qcm-toggle').textContent = questionsDiv.classList.contains("visible") ? "▲" : "▼";
+            }
+          });
+
+          li.appendChild(qcmHeader);
+          li.appendChild(questionsDiv);
           listDisplay.appendChild(li);
 
           chargerQuestionsDeQcm(docSnap.id);
@@ -495,13 +547,15 @@
       });
     }
 
-    window.toggleEntrainement = async (qcmId, statutActuel) => {
+    window.toggleEntrainement = async (event, qcmId, statutActuel) => {
+      event.stopPropagation();
       try {
         await updateDoc(doc(db, "qcms", qcmId), { actifPourEntrainement: !statutActuel });
       } catch (e) { alert(e.message); }
     };
 
-    window.supprimerQcm = async (qcmId) => {
+    window.supprimerQcm = async (event, qcmId) => {
+      event.stopPropagation();
       if (confirm("Supprimer ce QCM supprimera toutes ses questions. Continuer ?")) {
         await deleteDoc(doc(db, "qcms", qcmId));
       }
@@ -509,36 +563,44 @@
 
     function chargerQuestionsDeQcm(qcmId) {
       onSnapshot(collection(db, "qcms", qcmId, "questions"), (snapshot) => {
-        const ul = document.getElementById(`questions-list-${qcmId}`);
-        if (!ul) return;
-        ul.innerHTML = "";
+        const container = document.getElementById(`questions-${qcmId}`);
+        if (!container) return;
+        container.innerHTML = "";
+
+        let questionNumber = 1;
         snapshot.forEach((docSnap) => {
           const q = docSnap.data();
-          const li = document.createElement("li");
-          li.style.background = "none";
-          li.style.padding = "5px 0";
-          li.style.margin = "0";
-          li.style.border = "none";
+          const questionDiv = document.createElement("div");
+          questionDiv.className = "question-item";
           
           const optLabels = q.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}: ${opt}`).join(" | ");
+          const reponseCorrecteDisplay = Array.isArray(q.reponsesCorrectes) ? q.reponsesCorrectes.join(", ") : q.reponsesCorrectes;
+          const bonusLabel = q.isBonus ? '<span class="question-bonus">⭐ BONUS</span>' : '';
+          
           const cleanQuestion = q.question.replace(/'/g, "\\'");
           const cleanOpts = q.options.map(opt => opt.replace(/'/g, "\\'"));
 
-          li.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; font-size: 14px;">
-              <span>❓ ${q.question} (${optLabels} - Correct: ${q.reponseCorrecte} - ⏱️ ${q.tempsLimite}s)</span>
-              <div>
-                <button onclick="window.editerQuestion('${qcmId}', '${docSnap.id}', '${cleanQuestion}', '${cleanOpts[0]}', '${cleanOpts[1]}', '${cleanOpts[2] || ''}', '${cleanOpts[3] || ''}', '${q.reponseCorrecte}', ${q.tempsLimite})" style="background:#17a2b8; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer; margin-right:4px;">Modifier</button>
-                <button onclick="window.supprimerQuestion('${qcmId}', '${docSnap.id}')" style="background:#dc3545; color:white; border:none; border-radius:4px; padding:3px 8px; cursor:pointer;">X</button>
+          questionDiv.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
+              <div style="flex:1;">
+                <div class="question-number">Question ${questionNumber}</div>
+                <div style="margin:5px 0; font-weight:bold;">❓ ${q.question} ${bonusLabel}</div>
+                <div style="font-size:13px; color:#aaa; margin:5px 0;">${optLabels}</div>
+                <div class="correct-answers-info">✅ Réponses correctes: ${reponseCorrecteDisplay} | ⏱️ ${q.tempsLimite}s</div>
+              </div>
+              <div style="display:flex; gap:5px; flex-shrink:0;">
+                <button onclick="window.editerQuestion('${qcmId}', '${docSnap.id}', '${cleanQuestion}', '${cleanOpts[0]}', '${cleanOpts[1]}', '${cleanOpts[2] || ''}', '${cleanOpts[3] || ''}', '${reponseCorrecteDisplay}', ${q.tempsLimite}, ${q.isBonus || false})" style="background:#17a2b8; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer; font-size:12px; white-space:nowrap;">Modifier</button>
+                <button onclick="window.supprimerQuestion('${qcmId}', '${docSnap.id}')" style="background:#dc3545; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer; font-size:12px; white-space:nowrap;">X</button>
               </div>
             </div>
           `;
-          ul.appendChild(li);
+          container.appendChild(questionDiv);
+          questionNumber++;
         });
       });
     }
 
-    window.editerQuestion = (qcmId, questionId, question, optA, optB, optC, optD, correct, timer) => {
+    window.editerQuestion = (qcmId, questionId, question, optA, optB, optC, optD, correctAnswers, timer, isBonus) => {
       document.getElementById("editingQuestionId").value = questionId;
       document.getElementById("qcmSelectQuestion").value = qcmId;
       document.getElementById("questionText").value = question;
@@ -546,8 +608,14 @@
       document.getElementById("optB").value = optB;
       document.getElementById("optC").value = optC;
       document.getElementById("optD").value = optD;
-      document.getElementById("correctOpt").value = correct;
       document.getElementById("timer").value = timer;
+      document.getElementById("isBonusQuestion").checked = isBonus;
+
+      // Gérer les multiples réponses correctes
+      document.getElementById("checkA").checked = correctAnswers.includes('A');
+      document.getElementById("checkB").checked = correctAnswers.includes('B');
+      document.getElementById("checkC").checked = correctAnswers.includes('C');
+      document.getElementById("checkD").checked = correctAnswers.includes('D');
 
       document.getElementById("questionFormTitle").innerText = "Modifier la question 📝";
       document.getElementById("saveBtn").innerText = "Mettre à jour la question";
@@ -562,8 +630,12 @@
       document.getElementById("optB").value = "";
       document.getElementById("optC").value = "";
       document.getElementById("optD").value = "";
-      document.getElementById("correctOpt").value = "";
+      document.getElementById("checkA").checked = false;
+      document.getElementById("checkB").checked = false;
+      document.getElementById("checkC").checked = false;
+      document.getElementById("checkD").checked = false;
       document.getElementById("timer").value = "";
+      document.getElementById("isBonusQuestion").checked = false;
 
       document.getElementById("questionFormTitle").innerText = "Ajouter une question dans un QCM";
       document.getElementById("saveBtn").innerText = "Enregistrer la question";
@@ -583,12 +655,19 @@
       const b = document.getElementById("optB").value.trim();
       const c = document.getElementById("optC").value.trim();
       const d = document.getElementById("optD").value.trim();
-      const correct = document.getElementById("correctOpt").value.toUpperCase().trim();
       const time = parseInt(document.getElementById("timer").value);
+      const isBonus = document.getElementById("isBonusQuestion").checked;
       const editingQuestionId = document.getElementById("editingQuestionId").value;
 
-      if (!qcmId || !qText || !a || !b || !correct || !time) {
-        alert("La question, l'Option A, l'Option B, la bonne réponse et le temps limite sont obligatoires !");
+      // Récupérer les bonnes réponses cochées
+      const correctAnswers = [];
+      if (document.getElementById("checkA").checked) correctAnswers.push("A");
+      if (document.getElementById("checkB").checked) correctAnswers.push("B");
+      if (document.getElementById("checkC").checked) correctAnswers.push("C");
+      if (document.getElementById("checkD").checked) correctAnswers.push("D");
+
+      if (!qcmId || !qText || !a || !b || correctAnswers.length === 0 || !time) {
+        alert("La question, Option A, Option B, au moins une bonne réponse et le temps limite sont obligatoires !");
         return;
       }
 
@@ -601,8 +680,9 @@
           await setDoc(doc(db, "qcms", qcmId, "questions", editingQuestionId), {
             question: qText,
             options: options,
-            reponseCorrecte: correct,
-            tempsLimite: time
+            reponsesCorrectes: correctAnswers,
+            tempsLimite: time,
+            isBonus: isBonus
           });
           alert("Question mise à jour !");
           annulerEditionQuestion();
@@ -610,8 +690,9 @@
           await addDoc(collection(db, "qcms", qcmId, "questions"), {
             question: qText,
             options: options,
-            reponseCorrecte: correct,
-            tempsLimite: time
+            reponsesCorrectes: correctAnswers,
+            tempsLimite: time,
+            isBonus: isBonus
           });
           alert("Question enregistrée !");
         }
@@ -620,8 +701,8 @@
         document.getElementById("optB").value = "";
         document.getElementById("optC").value = "";
         document.getElementById("optD").value = "";
-        document.getElementById("correctOpt").value = "";
         document.getElementById("timer").value = "";
+        annulerEditionQuestion();
       } catch (e) { alert(e.message); }
     });
 
@@ -812,7 +893,7 @@
             
             div.innerHTML = `
               ${icon} Quest ${parseInt(index) + 1} : ${r.question}<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;Choix : <span ${textStyle}>${r.reponseChoisie || "Aucune"}</span> (Correcte : ${r.reponseCorrecte})
+              &nbsp;&nbsp;&nbsp;&nbsp;Choix : <span ${textStyle}>${r.reponseChoisie || "Aucune"}</span> (Correcte(s) : ${r.reponseCorrecte})
             `;
             container.appendChild(div);
           });
