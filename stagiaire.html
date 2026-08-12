@@ -80,6 +80,11 @@
       background: #3a3a3a; 
       border-color: #b30000; 
     }
+    .option-btn:disabled {
+      background: #2a2a2a;
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
     #timer-display { font-size: 26px; font-weight: bold; color: #e50914; margin: 15px 0; letter-spacing: 1px; }
     
     /* Barre d'onglets de l'accueil */
@@ -232,7 +237,7 @@
     let activeQuestionIndex = 0;
     let aRepondu = false;
     let intervalleMinuteur = null;
-    let questionStartTime = null; // 🔴 NOUVEAU : Timestamp du serveur
+    let questionStartTime = null;
 
     // --- QR CODE AUTO-REDIRECT ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -320,7 +325,6 @@
 
         if (sessionData.statut === "en_cours") {
           const index = sessionData.questionActive;
-          // 🟢 CORRECTION : Récupérer le timestamp du serveur
           if (sessionData.questionStartTime) {
             questionStartTime = sessionData.questionStartTime.seconds * 1000;
           }
@@ -384,7 +388,6 @@
 
     // --- MOTEUR DE QUESTION & MINUTEUR SYNCHRONISÉ ---
     function afficherQuestion(index) {
-      // 🔴 CRITIQUE : Arrêter tout minuteur actif
       if (intervalleMinuteur) {
         clearInterval(intervalleMinuteur);
         intervalleMinuteur = null;
@@ -393,10 +396,15 @@
       showScreen("screen-question");
       document.getElementById("wait-next-msg").style.display = "none";
       
+      // 🟢 NOUVEAU : Réactiver les boutons
       document.getElementById("btn-optA").style.display = "none";
+      document.getElementById("btn-optA").disabled = false;
       document.getElementById("btn-optB").style.display = "none";
+      document.getElementById("btn-optB").disabled = false;
       document.getElementById("btn-optC").style.display = "none";
+      document.getElementById("btn-optC").disabled = false;
       document.getElementById("btn-optD").style.display = "none";
+      document.getElementById("btn-optD").disabled = false;
 
       const q = listeQuestions[index];
       document.getElementById("question-text").innerText = q.question;
@@ -420,7 +428,6 @@
 
       aRepondu = false;
 
-      // 🟢 CORRECTION : Synchroniser avec le timestamp du serveur
       const now = Date.now();
       let tempsEcoule = 0;
       
@@ -431,7 +438,7 @@
       let tempsRestant = Math.max(0, q.tempsLimite - tempsEcoule);
       document.getElementById("timer-display").innerText = `${tempsRestant}s`;
 
-      // Mettre à jour le minuteur chaque seconde
+      // 🟢 NOUVEAU : Le minuteur continue même après la réponse
       intervalleMinuteur = setInterval(() => {
         tempsRestant--;
         document.getElementById("timer-display").innerText = `${tempsRestant}s`;
@@ -445,7 +452,6 @@
         }
       }, 1000);
 
-      // Attacher les événements click
       document.getElementById("btn-optA").onclick = () => { 
         validerReponse("A", q, index, tempsRestant); 
       };
@@ -461,21 +467,16 @@
     }
 
     async function validerReponse(choix, question, index, tempsRestant) {
-      // 🔴 CRITIQUE : Vérifier que l'utilisateur n'a pas déjà répondu
       if (aRepondu) return;
       aRepondu = true;
 
-      // 🔴 CRITIQUE : Arrêter immédiatement le minuteur
-      if (intervalleMinuteur) {
-        clearInterval(intervalleMinuteur);
-        intervalleMinuteur = null;
-      }
-
-      // Masquer les boutons
-      document.getElementById("btn-optA").style.display = "none";
-      document.getElementById("btn-optB").style.display = "none";
-      document.getElementById("btn-optC").style.display = "none";
-      document.getElementById("btn-optD").style.display = "none";
+      // 🟢 NOUVEAU : Désactiver les boutons mais ne pas arrêter le minuteur
+      document.getElementById("btn-optA").disabled = true;
+      document.getElementById("btn-optB").disabled = true;
+      document.getElementById("btn-optC").disabled = true;
+      document.getElementById("btn-optD").disabled = true;
+      
+      // Montrer le message
       document.getElementById("wait-next-msg").style.display = "block";
 
       const N = listeQuestions.length;
@@ -499,15 +500,12 @@
       };
 
       if (isLiveMode) {
-        // Envoyer les résultats à Firebase
         await setDoc(doc(db, "sessions", currentSessionId, "participants", participantId), {
           nom: traineeName,
           score: scoreTotal,
           reponses: reponsesEnregistrees
         }, { merge: true });
-        // Le formateur va changer questionActive, l'écouteur va déclencher afficherQuestion()
       } else {
-        // En entraînement autonome, avancer après 2 secondes
         setTimeout(() => {
           avancerEntrainementSolo();
         }, 2000);
@@ -524,6 +522,11 @@
     }
 
     async function afficherClassementEtCorrectionFinal() {
+      if (intervalleMinuteur) {
+        clearInterval(intervalleMinuteur);
+        intervalleMinuteur = null;
+      }
+
       showScreen("screen-end");
       document.getElementById("finalScore").innerText = scoreTotal;
 
