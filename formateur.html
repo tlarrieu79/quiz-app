@@ -1,4 +1,4 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
@@ -143,7 +143,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, query, orderBy, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, query, orderBy, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB5_JJfUZvEtgdvgC3RN655uNrHNQS4zJA",
@@ -452,8 +452,9 @@
         await setDoc(doc(db, "sessions", currentSessionId), {
           statut: "en_attente",
           questionActive: 0,
+          questionStartTime: null,
           qcmId: qcmId,
-          dateCreation: new Date()
+          dateCreation: serverTimestamp()
         });
 
         document.getElementById("sessionStatus").innerText = `Session "${currentSessionId}" prête !`;
@@ -509,9 +510,16 @@
         await setDoc(sessionDoc, { statut: "en_cours", questionActive: 0 }, { merge: true });
         
         for (let i = 0; i < qcmsList.length; i++) {
-          await setDoc(sessionDoc, { questionActive: i }, { merge: true });
+          // 🔴 CORRECTION : Envoyer le timestamp du serveur pour synchroniser
+          await setDoc(sessionDoc, { 
+            questionActive: i,
+            questionStartTime: serverTimestamp()
+          }, { merge: true });
+          
           document.getElementById("gameProgress").innerText = `Question ${i + 1} sur ${qcmsList.length} en cours...`;
-          const tempsDAttente = (qcmsList[i].tempsLimite + 3) * 1000;
+          
+          // Durée = temps de la question + buffer pour la latence
+          const tempsDAttente = (qcmsList[i].tempsLimite + 2) * 1000;
           await new Promise(resolve => setTimeout(resolve, tempsDAttente));
         }
 
