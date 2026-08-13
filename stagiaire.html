@@ -293,7 +293,11 @@
           return;
         }
 
-        const qcmId = sessionSnap.data().qcmId;
+        const sessionData = sessionSnap.data();
+        
+        // 🟢 CORRECTION : Les questions sont directement lues depuis la session
+        listeQuestions = sessionData.questions || [];
+
         const userCredential = await signInAnonymously(auth);
         participantId = userCredential.user.uid;
         currentSessionId = code;
@@ -310,9 +314,6 @@
           reponses: {}
         });
 
-        const qcmsSnap = await getDocs(collection(db, "qcms", qcmId, "questions"));
-        listeQuestions = qcmsSnap.docs.map(doc => doc.data());
-
         ecouterSessionLive();
 
       } catch (e) { alert("Erreur: " + e.message); }
@@ -322,6 +323,11 @@
       onSnapshot(doc(db, "sessions", currentSessionId), (docSnap) => {
         if (!docSnap.exists()) return;
         const sessionData = docSnap.data();
+
+        // Mettre à jour la liste des questions si nécessaire
+        if (sessionData.questions) {
+          listeQuestions = sessionData.questions;
+        }
 
         if (sessionData.statut === "en_cours") {
           const index = sessionData.questionActive;
@@ -396,7 +402,6 @@
       showScreen("screen-question");
       document.getElementById("wait-next-msg").style.display = "none";
       
-      // 🟢 NOUVEAU : Réactiver les boutons
       document.getElementById("btn-optA").style.display = "none";
       document.getElementById("btn-optA").disabled = false;
       document.getElementById("btn-optB").style.display = "none";
@@ -438,7 +443,6 @@
       let tempsRestant = Math.max(0, q.tempsLimite - tempsEcoule);
       document.getElementById("timer-display").innerText = `${tempsRestant}s`;
 
-      // 🟢 NOUVEAU : Le minuteur continue même après la réponse
       intervalleMinuteur = setInterval(() => {
         tempsRestant--;
         document.getElementById("timer-display").innerText = `${tempsRestant}s`;
@@ -470,20 +474,24 @@
       if (aRepondu) return;
       aRepondu = true;
 
-      // 🟢 NOUVEAU : Désactiver les boutons mais ne pas arrêter le minuteur
       document.getElementById("btn-optA").disabled = true;
       document.getElementById("btn-optB").disabled = true;
       document.getElementById("btn-optC").disabled = true;
       document.getElementById("btn-optD").disabled = true;
       
-      // Montrer le message
       document.getElementById("wait-next-msg").style.display = "block";
 
       const N = listeQuestions.length;
       const scoreMaximumParQuestion = 1000 / N;
 
+      // 🟢 CORRECTION : Support de la propriété reponsesCorrectes (tableau) ou reponseCorrecte (string)
+      const correctAnswers = Array.isArray(question.reponsesCorrectes) 
+        ? question.reponsesCorrectes 
+        : (question.reponseCorrecte ? [question.reponseCorrecte] : []);
+
       let pointsGagnes = 0;
-      const correct = (choix === question.reponseCorrecte);
+      const correct = choix ? correctAnswers.includes(choix) : false;
+      
       if (correct) {
         const base = scoreMaximumParQuestion * 0.5;
         const vitesse = scoreMaximumParQuestion * 0.5 * (tempsRestant / question.tempsLimite);
@@ -495,7 +503,7 @@
       reponsesEnregistrees[index] = {
         question: question.question,
         reponseChoisie: choix || "Aucune réponse",
-        reponseCorrecte: question.reponseCorrecte,
+        reponseCorrecte: correctAnswers.join(", "),
         correct: correct
       };
 
