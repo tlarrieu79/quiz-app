@@ -110,6 +110,12 @@
 
 </div>
 
+<script>
+  // Vérifier si elle vient du QR code AVANT le chargement
+  const urlParams = new URLSearchParams(window.location.search);
+  window.sessionFromUrl = urlParams.get("session");
+</script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { getFirestore, collection, doc, setDoc, onSnapshot, getDoc, getDocs, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -126,7 +132,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let isLiveMode = false;
+  let isLiveMode = !!window.sessionFromUrl;
   let currentSessionId = "";
   let participantId = "";
   let currentQcmId = "";
@@ -440,6 +446,14 @@
       `;
       resultsList.appendChild(div);
     });
+  }
+
+  // ===== INITIALISER AVEC LE QR CODE SI PRÉSENT =====
+  if (window.sessionFromUrl) {
+    setTimeout(() => {
+      document.getElementById("sessionCode").value = window.sessionFromUrl;
+      showScreen("screen-join");
+    }, 100);
   }
 
 </script>
