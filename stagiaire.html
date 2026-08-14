@@ -80,7 +80,6 @@
       background: #3a3a3a; 
       border-color: #b30000; 
     }
-    /* Style quand l'option est sélectionnée par le stagiaire */
     .option-btn.selected {
       border-color: #e50914;
       background: #3a1a1a;
@@ -248,9 +247,32 @@
     let aRepondu = false;
     let intervalleMinuteur = null;
     let questionStartTime = null;
-
-    // Tableau pour conserver les réponses sélectionnées pour la question en cours
     let choixSelectionnes = [];
+
+    // --- MOTEUR AUDIO (MÉTRONOME) ---
+    let audioCtx = null;
+    function playTick() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle'; 
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.08);
+      } catch (e) {
+        console.error("Erreur Audio:", e);
+      }
+    }
 
     // --- QR CODE AUTO-REDIRECT ---
     const urlParams = new URLSearchParams(window.location.search);
@@ -414,7 +436,6 @@
       document.getElementById("btn-submit-answer").style.display = "block";
       document.getElementById("btn-submit-answer").disabled = false;
 
-      // Réinitialiser les choix pour cette question
       choixSelectionnes = [];
       aRepondu = false;
 
@@ -468,22 +489,25 @@
         tempsRestant--;
         document.getElementById("timer-display").innerText = `${tempsRestant}s`;
 
+        // 🟢 NOUVEAU : Métronome aux 5 dernières secondes
+        if (tempsRestant <= 5 && tempsRestant > 0 && !aRepondu) {
+          playTick();
+        }
+
         if (tempsRestant <= 0) {
           clearInterval(intervalleMinuteur);
           intervalleMinuteur = null;
-          // Auto-validation à la fin du temps imparti si pas encore validé
           if (!aRepondu) {
-            validerReponse(q, index, 0);
+            validerReponse(q, index);
           }
         }
       }, 1000);
 
       document.getElementById("btn-submit-answer").onclick = () => {
-        validerReponse(q, index, tempsRestant);
+        validerReponse(q, index);
       };
     }
 
-    // Basculer l'état sélectionné/désélectionné lors du clic
     function toggleOption(lettre, btnElement) {
       if (aRepondu) return;
 
@@ -497,11 +521,10 @@
       }
     }
 
-    async function validerReponse(question, index, tempsRestant) {
+    async function validerReponse(question, index) {
       if (aRepondu) return;
       aRepondu = true;
 
-      // Désactiver les interactions
       ['A', 'B', 'C', 'D'].forEach(l => {
         document.getElementById(`btn-opt${l}`).disabled = true;
       });
@@ -511,23 +534,20 @@
       const N = listeQuestions.length;
       const scoreMaximumParQuestion = 1000 / N;
 
-      // Récupérer les bonnes réponses sous forme de tableau propre
       const correctAnswers = Array.isArray(question.reponsesCorrectes) 
         ? question.reponsesCorrectes 
         : (question.reponseCorrecte ? [question.reponseCorrecte] : []);
 
-      // Trier pour comparer l'exactitude des sélections
       const userSorted = [...choixSelectionnes].sort();
       const correctSorted = [...correctAnswers].sort();
 
       const isExactMatch = (userSorted.length === correctSorted.length) &&
                            userSorted.every((val, i) => val === correctSorted[i]);
 
+      // 🟢 NOUVEAU : Notation fixe sans prise en compte du temps
       let pointsGagnes = 0;
       if (isExactMatch) {
-        const base = scoreMaximumParQuestion * 0.5;
-        const vitesse = scoreMaximumParQuestion * 0.5 * (tempsRestant / question.tempsLimite);
-        pointsGagnes = Math.round(base + vitesse);
+        pointsGagnes = Math.round(scoreMaximumParQuestion);
       }
 
       scoreTotal += pointsGagnes;
