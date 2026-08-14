@@ -3,384 +3,250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Application PSE - Espace Formateur</title>
+  <title>Espace Formateur - QCM du Génie</title>
   <style>
-    /* Styles généraux */
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #121212;
-      color: #ffffff;
+    /* Charte Graphique du Génie : Rouge & Noir */
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      padding: 20px; 
+      background: #121212; 
+      color: #ffffff; 
       margin: 0;
-      padding: 20px;
     }
     .container {
       max-width: 900px;
       margin: 0 auto;
     }
-    .box {
-      background: #1e1e1e;
-      border: 1px solid #333;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 20px;
+    .card { 
+      background: #1a1a1a; 
+      padding: 25px; 
+      border-radius: 16px; 
+      border: 2px solid #b30000; 
+      box-shadow: 0 8px 24px rgba(179, 0, 0, 0.25); 
+      margin-bottom: 25px;
     }
-    .info-banner {
-      background: #2a2d32;
-      border-left: 4px solid #17a2b8;
-      padding: 12px 15px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      font-size: 13px;
-      line-height: 1.5;
+    h1, h2, h3 { 
+      color: #b30000; 
+      margin-top: 0;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    input[type="text"], input[type="email"], input[type="password"], input[type="number"], select {
-      width: 100%;
-      padding: 10px;
-      margin-top: 8px;
-      margin-bottom: 12px;
-      border-radius: 6px;
+    input, select, button, textarea { 
+      padding: 12px; 
+      margin: 8px 0; 
+      width: 100%; 
+      box-sizing: border-box; 
+      border-radius: 8px; 
+      font-size: 15px; 
+    }
+    input, select, textarea {
+      background: #2a2a2a;
+      color: #ffffff;
       border: 1px solid #444;
-      background: #2b2b2b;
-      color: white;
-      box-sizing: border-box;
     }
-    button {
-      width: 100%;
-      padding: 12px;
-      border-radius: 6px;
-      border: none;
-      background: #dc3545;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 5px;
+    input:focus, select:focus, textarea:focus {
+      border-color: #b30000;
+      outline: none;
     }
-    button:hover {
-      opacity: 0.9;
+    button { 
+      background: #b30000; 
+      color: white; 
+      border: none; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      text-transform: uppercase;
     }
+    button:hover { 
+      background: #e50914; 
+      box-shadow: 0 0 12px rgba(229, 9, 20, 0.4);
+    }
+    .btn-secondary { background: #444; }
+    .btn-secondary:hover { background: #666; }
+    .btn-success { background: #28a745; }
+    .btn-success:hover { background: #218838; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
     
-    /* Écrans & Onglets */
-    .screen { display: none; }
-    .screen.active { display: block; }
-    
-    .tab-bar {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .tab-btn {
-      flex: 1;
-      padding: 12px;
-      background: #2b2b2b;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .tab-btn.active {
-      background: #dc3545;
-    }
-    .tab-btn.logout {
-      background: #6c757d;
-    }
-    
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
+    /* Checkbox personnalisées pour choix multiples */
     .checkbox-group {
       display: flex;
       gap: 15px;
+      align-items: center;
       margin: 10px 0;
-      flex-wrap: wrap;
+      background: #2a2a2a;
+      padding: 10px;
+      border-radius: 8px;
     }
     .checkbox-group label {
+      cursor: pointer;
       display: flex;
       align-items: center;
       gap: 5px;
-      cursor: pointer;
     }
-    .checkbox-group input {
+    .checkbox-group input[type="checkbox"] {
       width: auto;
       margin: 0;
     }
 
-    /* Listes & Éléments */
-    ul { list-style: none; padding: 0; }
-    li { background: #2b2b2b; padding: 12px; margin-bottom: 8px; border-radius: 6px; }
-    
-    .qcm-header {
-      cursor: pointer;
-      padding: 12px;
-      background: #2b2b2b;
-      border-radius: 6px;
+    /* Tab navigation */
+    .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .nav-tab-btn { 
+      flex: 1; 
+      padding: 14px; 
+      background: #2a2a2a; 
+      border: none; 
+      color: #888; 
+      font-weight: bold; 
+      border-radius: 8px; 
+      cursor: pointer; 
     }
-    .questions-list {
-      display: none;
-      padding: 12px;
-      background: #1a1a1a;
-      border-radius: 6px;
-      margin-top: 5px;
+    .nav-tab-btn.active { 
+      background: #b30000; 
+      color: #fff; 
     }
-    .questions-list.visible { display: block; }
-    .question-item {
-      border-bottom: 1px solid #333;
-      padding: 10px 0;
-    }
-    .question-number { font-size: 12px; color: #17a2b8; font-weight: bold; }
-    .question-bonus { color: #ffc107; font-size: 12px; margin-left: 5px; }
-    .correct-answers-info { font-size: 12px; color: #28a745; margin-top: 4px; }
-    .correct-ans { color: #28a745; font-weight: bold; }
-    .wrong-ans { color: #dc3545; font-weight: bold; }
 
-    /* Documents & Dossiers */
-    .doc-view { display: none; }
-    .doc-view.active { display: block; }
-    
-    .create-folder-box { margin-bottom: 20px; }
-    .folders-list { display: flex; flex-direction: column; gap: 10px; }
-    .folder-item {
-      background: #2b2b2b;
-      border-left: 4px solid #17a2b8;
-      border-radius: 6px;
-      padding: 12px 15px;
+    .qcm-item {
+      background: #2a2a2a;
+      border: 1px solid #444;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .folder-item-name {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      font-weight: bold;
+    
+    /* Table des participants */
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+    th { color: #b30000; text-transform: uppercase; font-size: 13px; }
+    
+    #qr-code-img {
+      max-width: 180px;
+      border: 4px solid #fff;
+      border-radius: 8px;
+      margin: 15px 0;
     }
-    .btn-delete-folder {
-      background: #dc3545;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      width: auto;
-      margin: 0;
-    }
-
-    .empty-folders { text-align: center; padding: 40px 20px; color: #666; }
-    .empty-folders-icon { font-size: 48px; margin-bottom: 15px; }
-    
-    .folder-detail-header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #17a2b8; }
-    .back-btn { background: #17a2b8; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; width: auto; margin: 0; }
-    .back-btn:hover { background: #138496; }
-    .folder-detail-name { font-size: 24px; font-weight: bold; color: #17a2b8; }
-    
-    .upload-box { background: #2b2b2b; border: 2px dashed #17a2b8; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
-    .upload-box-label { color: #17a2b8; font-size: 13px; font-weight: bold; margin-bottom: 10px; display: block; }
-    .upload-controls { display: flex; gap: 10px; }
-    .upload-controls input { margin: 0; flex: 1; background: #1e1e1e; border: 1px solid #444; }
-    .upload-btn { background: #17a2b8; color: white; border: none; padding: 12px 20px; border-radius: 6px; font-weight: bold; cursor: pointer; width: auto; margin: 0; flex-shrink: 0; }
-    .upload-btn:hover { background: #138496; }
-    
-    .files-section { background: #1a1a1a; border-radius: 8px; padding: 15px; border: 1px solid #333; }
-    .files-section-title { color: #17a2b8; font-size: 13px; font-weight: bold; text-transform: uppercase; margin-bottom: 12px; }
-    .files-grid { display: flex; flex-direction: column; gap: 8px; }
-    .file-item { background: #2b2b2b; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #17a2b8; }
-    .file-info { display: flex; align-items: center; gap: 10px; flex: 1; }
-    .file-icon { font-size: 18px; }
-    .file-name { color: #fff; font-size: 14px; word-break: break-word; }
-    .file-actions { display: flex; gap: 6px; }
-    .btn-open { background: #28a745; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; width: auto; margin: 0; }
-    .btn-open:hover { background: #20c997; }
-    .btn-delete-file { background: #dc3545; color: white; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; font-weight: bold; width: auto; margin: 0; }
-    .btn-delete-file:hover { background: #c82333; }
-    .no-files { color: #666; text-align: center; padding: 20px; font-size: 13px; font-style: italic; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- ÉCRAN 1 : CONNEXION FORMATEUR -->
-    <div id="screen-login" class="screen active">
-      <div class="box" style="border-color: #dc3545;">
-        <h1>Espace Formateur 🔑</h1>
-        <input type="email" id="loginEmail" placeholder="Votre adresse e-mail">
-        <input type="password" id="loginPassword" placeholder="Votre mot de passe">
-        <button id="loginBtn">Se connecter au tableau de bord</button>
+    <div class="nav-tabs">
+      <button class="nav-tab-btn active" id="tab-live-btn">🎮 Live Session</button>
+      <button class="nav-tab-btn" id="tab-manage-btn">📚 Mes QCMs</button>
+    </div>
+
+    <!-- ================= SECTION 1 : LIVE SESSION ================= -->
+    <div id="section-live">
+      <div class="card">
+        <h2>1. Lancer une Session Live</h2>
+        <div class="grid">
+          <div>
+            <label>Choisir un QCM :</label>
+            <select id="select-qcm-live"></select>
+          </div>
+          <div>
+            <label>Code de Session :</label>
+            <input type="text" id="input-session-code" placeholder="Ex: PSE101">
+          </div>
+        </div>
+        <button id="btn-create-session" class="btn-success">Créer la session live 🚀</button>
+      </div>
+
+      <!-- Dashboard de contrôle de la session active -->
+      <div id="session-control-box" class="card" style="display:none;">
+        <div style="text-align: center;">
+          <h2>Session Active : <span id="active-code-display" style="color:#fff;"></span></h2>
+          <p>Scannez le QR Code ou utilisez le lien pour rejoindre :</p>
+          <img id="qr-code-img" src="" alt="QR Code Session">
+          <p><a id="direct-link" href="#" target="_blank" style="color:#e50914; font-weight:bold;"></a></p>
+        </div>
+
+        <hr style="border-color:#333; margin:20px 0;">
+
+        <!-- Contrôles du Formateur -->
+        <div style="text-align:center;">
+          <h3 id="current-question-title">Attente des stagiaires...</h3>
+          <p id="timer-live-display" style="font-size:28px; font-weight:bold; color:#e50914;"></p>
+          
+          <div style="display:flex; gap:10px; justify-content:center; margin-top:15px;">
+            <button id="btn-start-question" class="btn-success" style="flex:1;">Lancer la question ▶️</button>
+            <button id="btn-next-question" class="btn-secondary" style="flex:1;" disabled>Question Suivante ⏭️</button>
+            <button id="btn-end-session" style="background:#dc3545; flex:1;">Terminer la session 🏁</button>
+          </div>
+        </div>
+
+        <!-- Suivi des Participants -->
+        <h3>Participants connectés (<span id="count-participants">0</span>)</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Nom / Prénom</th>
+              <th>Score</th>
+              <th>Dernière réponse</th>
+            </tr>
+          </thead>
+          <tbody id="participants-table-body">
+            <tr><td colspan="3" style="color:#888;">Aucun stagiaire connecté pour le moment.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- ÉCRAN 2 : LE TABLEAU DE BORD INTERACTIF -->
-    <div id="screen-dashboard" class="screen">
-      
-      <div class="tab-bar">
-        <button class="tab-btn active" id="btn-tab-questions">Questions</button>
-        <button class="tab-btn" id="btn-tab-sessions">Sessions</button>
-        <button class="tab-btn" id="btn-tab-documents">📚 Documents</button>
-        <button class="tab-btn" id="btn-tab-history">Historique</button>
-        <button class="tab-btn logout" id="btn-logout">Déconnexion</button>
-      </div>
-
-      <!-- ONGLET A : BANQUE DE QUESTIONS -->
-      <div id="tab-questions" class="tab-content active">
-        <div class="box">
-          <h2 id="qcmFormTitle">Créer un nouveau dossier de QCM</h2>
-          <input type="text" id="qcmTitle" placeholder="Titre du QCM (ex: PSE 1 - 1)">
-          <input type="hidden" id="editingQcmId" value="">
-          <button id="createQcmBtn" style="background: #17a2b8;">Créer le dossier QCM</button>
-          <button id="cancelEditQcmBtn" style="background: #6c757d; display: none; margin-top: 5px;">Annuler la modification</button>
-        </div>
-
-        <div class="box">
-          <h2 id="questionFormTitle">Ajouter une question dans un QCM</h2>
-          <label for="qcmSelectQuestion">Sélectionnez le QCM cible :</label>
-          <select id="qcmSelectQuestion"></select>
+    <!-- ================= SECTION 2 : GESTION DES QCMS ================= -->
+    <div id="section-manage" style="display:none;">
+      <!-- Créateur de QCM -->
+      <div class="card">
+        <h2>Créer un nouveau QCM</h2>
+        <input type="text" id="qcm-title-input" placeholder="Titre du QCM (ex: Secourisme - PSE1 Module 1)">
+        
+        <h3 style="margin-top:20px;">Ajouter des questions</h3>
+        <div style="background:#222; padding:15px; border-radius:8px; border:1px solid #333;">
+          <input type="text" id="q-text" placeholder="Intitulé de la question">
           
-          <input type="text" id="questionText" placeholder="La question...">
-          <input type="text" id="optA" placeholder="Option A (Obligatoire)">
-          <input type="text" id="optB" placeholder="Option B (Obligatoire)">
-          <input type="text" id="optC" placeholder="Option C (Facultative)">
-          <input type="text" id="optD" placeholder="Option D (Facultative)">
-          
-          <label style="margin-top: 15px; display: block;">Sélectionnez les bonnes réponses :</label>
+          <div class="grid">
+            <input type="text" id="opt-A" placeholder="Option A">
+            <input type="text" id="opt-B" placeholder="Option B">
+            <input type="text" id="opt-C" placeholder="Option C">
+            <input type="text" id="opt-D" placeholder="Option D">
+          </div>
+
+          <label>Bonne(s) réponse(s) :</label>
           <div class="checkbox-group">
-            <label><input type="checkbox" id="checkA"> A</label>
-            <label><input type="checkbox" id="checkB"> B</label>
-            <label><input type="checkbox" id="checkC"> C</label>
-            <label><input type="checkbox" id="checkD"> D</label>
-          </div>
-          
-          <input type="number" id="timer" placeholder="Temps limite pour cette question (en secondes)">
-          
-          <div class="checkbox-group">
-            <label><input type="checkbox" id="isBonusQuestion"> ⭐ Question Bonus</label>
-          </div>
-          
-          <input type="hidden" id="editingQuestionId" value="">
-          
-          <button id="saveBtn">Enregistrer la question</button>
-          <button id="cancelEditQuestionBtn" style="background: #6c757d; display: none; margin-top: 5px;">Annuler la modification</button>
-        </div>
-
-        <div class="box">
-          <h2>Vos QCM et Questions enregistrées</h2>
-          <ul id="qcmListDisplay"></ul>
-        </div>
-      </div>
-
-      <!-- ONGLET B : CONTROLE DES SESSIONS (LIVE) -->
-      <div id="tab-sessions" class="tab-content">
-        <div class="box">
-          <h2>Configuration du QR Code 📱</h2>
-          <label for="traineeUrlInput">Collez le lien de votre page Stagiaire :</label>
-          <input type="text" id="traineeUrlInput" placeholder="Ex: https://pse-b5bd5.web.app">
-          
-          <p style="margin-top: 12px; font-size: 15px;">🔗 Lien à partager avec vos stagiaires :<br>
-            <a id="traineeLinkAnchor" href="#" target="_blank" style="color: #dc3545; font-weight: bold; word-break: break-all;">Aucun lien configuré</a>
-          </p>
-        </div>
-
-        <div class="box">
-          <h2>Lancer une session de jeu</h2>
-          
-          <div class="info-banner">
-            💡 <strong>Comment ça marche ?</strong><br>
-            • <strong>Lancer UN QCM précis (ex: PSE 1 - 1) :</strong> Cochez uniquement ce QCM et <u>laissez le nombre de questions vide</u>. Toutes ses questions seront incluses.<br>
-            • <strong>Évaluation sur mesure (Multi-QCM) :</strong> Cochez plusieurs QCM et indiquez un nombre de questions. Le système tirera des questions au sort parmi ces modules.
+            <label><input type="checkbox" class="correct-check" value="A"> A</label>
+            <label><input type="checkbox" class="correct-check" value="B"> B</label>
+            <label><input type="checkbox" class="correct-check" value="C"> C</label>
+            <label><input type="checkbox" class="correct-check" value="D"> D</label>
           </div>
 
-          <label style="font-weight: bold; display: block; margin-top: 15px;">1. Sélection du / des QCM :</label>
-          <div id="qcmCheckboxesContainer" style="background: #1e1e1e; padding: 12px; border-radius: 6px; border: 1px solid #444; margin-top: 5px; margin-bottom: 15px; max-height: 180px; overflow-y: auto;">
-            <p style="color: #888; font-size: 13px;">Chargement des QCM...</p>
-          </div>
-          
-          <label for="customQuestionCount" style="font-weight: bold;">2. Nombre de questions à tirer (Facultatif) :</label>
-          <input type="number" id="customQuestionCount" placeholder="Ex: 15 (Laissez vide pour TOUTES les questions)">
-
-          <label for="customSessionInput" style="font-weight: bold; display:block; margin-top:10px;">3. Numéro ou Nom de la session :</label>
-          <input type="text" id="customSessionInput" placeholder="Ex: Session 1, Groupe A...">
-
-          <button id="startSessionBtn" style="background: #28a745; margin-top: 15px;">Étape 1 : Générer la session</button>
-          <p id="sessionStatus" style="font-weight: bold; color: #17a2b8; margin-top: 15px;"></p>
-          
-          <div id="qrCodeContainer" style="display:none; text-align:center; margin: 20px 0; border-top: 1px solid #444; padding-top: 15px;">
-            <h3>Faites scanner ce QR Code permanent :</h3>
-            <img id="qrCodeImg" src="" alt="Session QR Code" style="border: 6px solid white; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border-radius: 12px; margin: 10px 0;">
-            
-            <p style="font-size: 18px; margin-top: 15px; font-weight: bold;">
-              Ou entrez manuellement le code sur la page d'accueil :<br>
-              <span id="qrSessionCodeDisplay" style="font-size: 32px; color: #ffffff; background: #2b2b2b; padding: 6px 20px; border-radius: 10px; display: inline-block; margin-top: 8px; border: 1px dashed #dc3545; letter-spacing: 2px;"></span>
-            </p>
-          </div>
-
-          <div id="gameControlBox" style="display: none; border-top: 1px solid #444; margin-top: 15px; padding-top: 15px;">
-            <h3>Membres de la section connectés (<span id="playerCount">0</span>) :</h3>
-            <ul id="lobbyList"></ul>
-            <button id="launchGameBtn" style="background: #ffc107; color: #212529;">Étape 2 : Lancer le QCM 100% automatique</button>
-            <p id="gameProgress" style="font-weight: bold; margin-top: 10px; color: #dc3545;"></p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ONGLET C : DOCUMENTS -->
-      <div id="tab-documents" class="tab-content">
-        <div id="doc-list-view" class="doc-view active">
-          <div class="create-folder-box">
-            <h3>📁 Créer un nouveau dossier</h3>
-            <input type="text" id="folderNameInput" placeholder="Nom du dossier (ex: Références légales)">
-            <button id="createFolderBtn" style="background: #17a2b8;">Créer le dossier</button>
-          </div>
-
-          <div id="foldersListContainer"></div>
-
-          <div id="emptyFoldersMessage" style="display: none;">
-            <div class="empty-folders">
-              <div class="empty-folders-icon">📂</div>
-              <p>Aucun dossier pour le moment.</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="doc-detail-view" class="doc-view">
-          <div class="folder-detail-header">
-            <button id="backBtn" class="back-btn">← Retour</button>
-            <div class="folder-detail-name" id="folderDetailName"></div>
-          </div>
-
-          <div class="upload-box">
-            <label class="upload-box-label">📤 Ajouter un document</label>
-            <div class="upload-controls">
-              <input type="file" id="fileInput">
-              <button id="uploadBtn" class="upload-btn">Upload</button>
+          <div class="grid">
+            <div>
+              <label>Temps limite (secondes) :</label>
+              <input type="number" id="q-time" value="30" min="5" max="120">
             </div>
           </div>
 
-          <div class="files-section">
-            <div class="files-section-title">📄 Fichiers</div>
-            <div id="filesGridContainer" class="files-grid"></div>
-            <p id="noFilesMessage" class="no-files">Aucun fichier dans ce dossier</p>
-          </div>
+          <button id="btn-add-question-to-list" class="btn-secondary" style="margin-top:10px;">+ Ajouter cette question au QCM</button>
         </div>
+
+        <h4 style="margin-top:20px;">Questions préparées (<span id="temp-q-count">0</span>) :</h4>
+        <ul id="temp-questions-list" style="padding-left:20px; color:#aaa;"></ul>
+
+        <button id="btn-save-qcm" class="btn-success" style="margin-top:15px;">Enregistrer le QCM complet 💾</button>
       </div>
 
-      <!-- ONGLET D : HISTORIQUE -->
-      <div id="tab-history" class="tab-content">
-        <div class="box">
-          <h2>Historique des sessions passées</h2>
-          <ul id="historyList"></ul>
-          <div id="historyScoresList" style="background: #1e1e1e; padding: 15px; border-radius: 8px; margin-top: 10px; display: none; border: 1px solid #333;"></div>
-        </div>
+      <!-- Liste des QCM existants -->
+      <div class="card">
+        <h2>Bibliothèque des QCMs</h2>
+        <div id="qcm-library-list">Chargement des QCMs...</div>
       </div>
-
     </div>
   </div>
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot, getDoc, getDocs, deleteDoc, query, orderBy, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import { getStorage, ref, uploadBytes, listAll, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
+    import { getFirestore, doc, setDoc, getDoc, getDocs, collection, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyB5_JJfUZvEtgdvgC3RN655uNrHNQS4zJA",
@@ -392,745 +258,280 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const db = getFirestore(app);
-    const storage = getStorage(app);
 
     let currentSessionId = "";
-    let qcmsList = [];
-    let unsubscribeParticipants = null;
-    let currentUserId = "";
-    let currentFolderId = "";
+    let sessionQuestions = [];
+    let currentQuestionIndex = 0;
+    let questionsTemp = [];
+    let liveTimerInterval = null;
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUserId = user.uid;
-        showScreen("screen-dashboard");
-        switchTab("tab-questions", "btn-tab-questions");
-        chargerQcms();
-        chargerHistoriqueSessions();
-        chargerDossiers();
-
-        const savedTraineeUrl = localStorage.getItem("traineeUrl");
-        if (savedTraineeUrl) {
-          document.getElementById("traineeUrlInput").value = savedTraineeUrl;
-          actualiserLienDisplay(savedTraineeUrl);
-        }
-      } else {
-        showScreen("screen-login");
-      }
+    // --- NAVIGATION ---
+    document.getElementById("tab-live-btn").addEventListener("click", () => {
+      document.getElementById("tab-live-btn").classList.add("active");
+      document.getElementById("tab-manage-btn").classList.remove("active");
+      document.getElementById("section-live").style.display = "block";
+      document.getElementById("section-manage").style.display = "none";
     });
 
-    document.getElementById("traineeUrlInput").addEventListener("input", (e) => {
-      const url = e.target.value.trim();
-      localStorage.setItem("traineeUrl", url);
-      actualiserLienDisplay(url);
+    document.getElementById("tab-manage-btn").addEventListener("click", () => {
+      document.getElementById("tab-manage-btn").classList.add("active");
+      document.getElementById("tab-live-btn").classList.remove("active");
+      document.getElementById("section-manage").style.display = "block";
+      document.getElementById("section-live").style.display = "none";
+      chargerBibliothequeQCM();
     });
 
-    function actualiserLienDisplay(url) {
-      const anchor = document.getElementById("traineeLinkAnchor");
-      if (url) {
-        anchor.href = url;
-        anchor.innerText = url;
-      } else {
-        anchor.href = "#";
-        anchor.innerText = "Aucun lien configuré";
-      }
-    }
+    // --- GESTION DE CRÉATION DE QCM ---
+    document.getElementById("btn-add-question-to-list").addEventListener("click", () => {
+      const question = document.getElementById("q-text").value.trim();
+      const optA = document.getElementById("opt-A").value.trim();
+      const optB = document.getElementById("opt-B").value.trim();
+      const optC = document.getElementById("opt-C").value.trim();
+      const optD = document.getElementById("opt-D").value.trim();
+      const tempsLimite = parseInt(document.getElementById("q-time").value) || 30;
 
-    function showScreen(screenId) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(screenId).classList.add('active');
-    }
+      const checked = Array.from(document.querySelectorAll('.correct-check:checked')).map(cb => cb.value);
 
-    function switchTab(tabId, btnId) {
-      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.getElementById(tabId).classList.add('active');
-      document.getElementById(btnId).classList.add('active');
-    }
-
-    document.getElementById("btn-tab-questions").addEventListener("click", () => switchTab("tab-questions", "btn-tab-questions"));
-    document.getElementById("btn-tab-sessions").addEventListener("click", () => switchTab("tab-sessions", "btn-tab-sessions"));
-    document.getElementById("btn-tab-documents").addEventListener("click", () => switchTab("tab-documents", "btn-tab-documents"));
-    document.getElementById("btn-tab-history").addEventListener("click", () => switchTab("tab-history", "btn-tab-history"));
-
-    document.getElementById("loginBtn").addEventListener("click", async () => {
-      const email = document.getElementById("loginEmail").value.trim();
-      const password = document.getElementById("loginPassword").value.trim();
-      try { await signInWithEmailAndPassword(auth, email, password); } catch (e) { alert("Erreur: " + e.message); }
-    });
-
-    document.getElementById("btn-logout").addEventListener("click", async () => {
-      if (confirm("Voulez-vous vous déconnecter ?")) { await signOut(auth); }
-    });
-
-    // ========== DOSSIERS DOCUMENTS ==========
-    document.getElementById("createFolderBtn").addEventListener("click", async () => {
-      const folderName = document.getElementById("folderNameInput").value.trim();
-      if (!folderName) return alert("Entrez un nom de dossier !");
-
-      try {
-        await addDoc(collection(db, "users", currentUserId, "folders"), {
-          nom: folderName,
-          dateCreation: serverTimestamp()
-        });
-        alert("Dossier créé !");
-        document.getElementById("folderNameInput").value = "";
-        chargerDossiers();
-      } catch (e) { alert(e.message); }
-    });
-
-    function chargerDossiers() {
-      onSnapshot(collection(db, "users", currentUserId, "folders"), (snapshot) => {
-        const container = document.getElementById("foldersListContainer");
-        const emptyMsg = document.getElementById("emptyFoldersMessage");
-        container.innerHTML = "";
-
-        if (snapshot.empty) {
-          emptyMsg.style.display = "block";
-          return;
-        }
-        emptyMsg.style.display = "none";
-
-        const foldersList = document.createElement("div");
-        foldersList.className = "folders-list";
-
-        snapshot.forEach((docSnap) => {
-          const folder = docSnap.data();
-          const folderId = docSnap.id;
-
-          const folderItem = document.createElement("div");
-          folderItem.className = "folder-item";
-          
-          folderItem.innerHTML = `
-            <div class="folder-item-name" onclick="window.openFolder('${folderId}', '${folder.nom.replace(/'/g, "\\'")}')">
-              <span class="folder-item-icon">📁</span>
-              <span>${folder.nom}</span>
-            </div>
-            <div class="folder-item-actions">
-              <button onclick="window.supprimerDossier(event, '${folderId}')" class="btn-delete-folder">Supprimer</button>
-            </div>
-          `;
-          
-          foldersList.appendChild(folderItem);
-        });
-
-        container.appendChild(foldersList);
-      });
-    }
-
-    window.openFolder = (folderId, folderName) => {
-      currentFolderId = folderId;
-      document.getElementById("folderDetailName").innerText = folderName;
-      document.getElementById("doc-list-view").classList.remove("active");
-      document.getElementById("doc-detail-view").classList.add("active");
-      chargerFichiers(folderId);
-    };
-
-    document.getElementById("backBtn").addEventListener("click", () => {
-      document.getElementById("doc-detail-view").classList.remove("active");
-      document.getElementById("doc-list-view").classList.add("active");
-      currentFolderId = "";
-    });
-
-    function chargerFichiers(folderId) {
-      const folderPath = `documents/${currentUserId}/${folderId}`;
-      const folderRef = ref(storage, folderPath);
-
-      listAll(folderRef).then((result) => {
-        const container = document.getElementById("filesGridContainer");
-        const noFilesMsg = document.getElementById("noFilesMessage");
-        container.innerHTML = "";
-
-        if (result.items.length === 0) {
-          noFilesMsg.style.display = "block";
-          return;
-        }
-        noFilesMsg.style.display = "none";
-
-        result.items.forEach((itemRef) => {
-          const fileName = itemRef.name;
-          const fileIcon = fileName.endsWith('.pdf') ? '📄' : '🖼️';
-          
-          const fileItem = document.createElement("div");
-          fileItem.className = "file-item";
-          fileItem.innerHTML = `
-            <div class="file-info">
-              <span class="file-icon">${fileIcon}</span>
-              <span class="file-name">${fileName}</span>
-            </div>
-            <div class="file-actions">
-              <button onclick="window.ouvrirFichier('${folderPath}/${fileName}')" class="btn-open">Ouvrir</button>
-              <button onclick="window.supprimerFichier('${folderPath}/${fileName}')" class="btn-delete-file">Suppr.</button>
-            </div>
-          `;
-          container.appendChild(fileItem);
-        });
-      }).catch((error) => {
-        console.error("Erreur fichiers:", error);
-      });
-    }
-
-    document.getElementById("uploadBtn").addEventListener("click", async () => {
-      const fileInput = document.getElementById("fileInput");
-      const file = fileInput.files[0];
-
-      if (!file) return alert("Sélectionnez un fichier !");
-
-      try {
-        const fileName = file.name;
-        const folderPath = `documents/${currentUserId}/${currentFolderId}/${fileName}`;
-        const fileRef = ref(storage, folderPath);
-
-        await uploadBytes(fileRef, file);
-        alert("Fichier uploadé !");
-        fileInput.value = "";
-        chargerFichiers(currentFolderId);
-      } catch (e) {
-        alert("Erreur upload: " + e.message);
-      }
-    });
-
-    window.ouvrirFichier = async (filePath) => {
-      try {
-        const fileRef = ref(storage, filePath);
-        const url = await getDownloadURL(fileRef);
-        window.open(url, '_blank');
-      } catch (e) { alert("Erreur: " + e.message); }
-    };
-
-    window.supprimerFichier = async (filePath) => {
-      if (!confirm("Supprimer ce fichier ?")) return;
-
-      try {
-        const fileRef = ref(storage, filePath);
-        await deleteObject(fileRef);
-        chargerFichiers(currentFolderId);
-      } catch (e) { alert("Erreur: " + e.message); }
-    };
-
-    window.supprimerDossier = async (event, folderId) => {
-      event.stopPropagation();
-      if (!confirm("Supprimer ce dossier ET tous ses fichiers ?")) return;
-
-      try {
-        const folderPath = `documents/${currentUserId}/${folderId}`;
-        const folderRef = ref(storage, folderPath);
-        const result = await listAll(folderRef);
-
-        for (const fileRef of result.items) {
-          await deleteObject(fileRef);
-        }
-
-        await deleteDoc(doc(db, "users", currentUserId, "folders", folderId));
-        chargerDossiers();
-      } catch (e) { alert("Erreur: " + e.message); }
-    };
-
-    // ========== QCM MANAGEMENT ==========
-    document.getElementById("createQcmBtn").addEventListener("click", async () => {
-      const title = document.getElementById("qcmTitle").value.trim();
-      const editingId = document.getElementById("editingQcmId").value;
-      if (!title) return alert("Indiquez un titre !");
-      
-      try {
-        if (editingId) {
-          await updateDoc(doc(db, "qcms", editingId), { titre: title });
-          alert("QCM modifié !");
-          annulerEditionQcm();
-        } else {
-          await addDoc(collection(db, "qcms"), { titre: title, actifPourEntrainement: false, dateCreation: new Date() });
-          alert("Dossier QCM créé !");
-        }
-        document.getElementById("qcmTitle").value = "";
-      } catch(e) { alert(e.message); }
-    });
-
-    window.editerQcm = (qcmId, titreActuel) => {
-      document.getElementById("editingQcmId").value = qcmId;
-      document.getElementById("qcmTitle").value = titreActuel;
-      document.getElementById("qcmFormTitle").innerText = "Modifier le dossier QCM 📝";
-      document.getElementById("createQcmBtn").innerText = "Mettre à jour le titre";
-      document.getElementById("cancelEditQcmBtn").style.display = "block";
-    };
-
-    document.getElementById("cancelEditQcmBtn").addEventListener("click", annulerEditionQcm);
-    function annulerEditionQcm() {
-      document.getElementById("editingQcmId").value = "";
-      document.getElementById("qcmTitle").value = "";
-      document.getElementById("qcmFormTitle").innerText = "Créer un nouveau dossier de QCM";
-      document.getElementById("createQcmBtn").innerText = "Créer le dossier QCM";
-      document.getElementById("cancelEditQcmBtn").style.display = "none";
-    }
-
-    function chargerQcms() {
-      onSnapshot(collection(db, "qcms"), (snapshot) => {
-        const selectQuestion = document.getElementById("qcmSelectQuestion");
-        const sessionCheckboxes = document.getElementById("qcmCheckboxesContainer");
-        const listDisplay = document.getElementById("qcmListDisplay");
-
-        selectQuestion.innerHTML = '<option value="">-- Choisir un QCM --</option>';
-        sessionCheckboxes.innerHTML = "";
-        listDisplay.innerHTML = "";
-
-        if (snapshot.empty) {
-          sessionCheckboxes.innerHTML = '<p style="color: #666; font-size: 13px; font-style: italic;">Aucun QCM disponible</p>';
-        }
-
-        snapshot.forEach((docSnap) => {
-          const qcm = docSnap.data();
-          const cleanTitle = qcm.titre.replace(/'/g, "\\'");
-          const entrainementStatut = qcm.actifPourEntrainement ? "Actif (Entraînement)" : "Inactif (Entraînement)";
-          const entrainementColor = qcm.actifPourEntrainement ? "#28a745" : "#6c757d";
-          
-          const opt1 = document.createElement("option");
-          opt1.value = docSnap.id;
-          opt1.innerText = qcm.titre;
-          selectQuestion.appendChild(opt1);
-
-          const checkboxLabel = document.createElement("label");
-          checkboxLabel.style.display = "block";
-          checkboxLabel.style.margin = "6px 0";
-          checkboxLabel.style.cursor = "pointer";
-          checkboxLabel.innerHTML = `<input type="checkbox" class="qcm-session-checkbox" value="${docSnap.id}"> 📁 ${qcm.titre}`;
-          sessionCheckboxes.appendChild(checkboxLabel);
-
-          const li = document.createElement("li");
-          li.style.background = "#2b2b2b";
-          li.style.padding = "0";
-          li.style.margin = "10px 0";
-
-          const qcmHeader = document.createElement("div");
-          qcmHeader.className = "qcm-header";
-          qcmHeader.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <span style="font-weight:bold;">📁 ${qcm.titre}</span>
-                <button onclick="window.toggleEntrainement(event, '${docSnap.id}', ${qcm.actifPourEntrainement})" style="background:${entrainementColor}; width:auto; padding:4px 8px; font-size:12px; margin:0;">${entrainementStatut}</button>
-                <button onclick="window.editerQcm('${docSnap.id}', '${cleanTitle}')" style="background:#17a2b8; width:auto; padding:4px 8px; font-size:12px; margin:0;">Éditer</button>
-                <button onclick="window.supprimerQcm(event, '${docSnap.id}')" style="background:#dc3545; width:auto; padding:4px 8px; font-size:12px; margin:0;">Supprimer</button>
-              </div>
-              <span class="qcm-toggle">▼</span>
-            </div>
-          `;
-
-          const questionsDiv = document.createElement("div");
-          questionsDiv.className = "questions-list";
-          questionsDiv.id = `questions-${docSnap.id}`;
-
-          qcmHeader.addEventListener("click", (e) => {
-            if (!e.target.closest('button')) {
-              questionsDiv.classList.toggle("visible");
-              qcmHeader.querySelector('.qcm-toggle').textContent = questionsDiv.classList.contains("visible") ? "▲" : "▼";
-            }
-          });
-
-          li.appendChild(qcmHeader);
-          li.appendChild(questionsDiv);
-          listDisplay.appendChild(li);
-
-          chargerQuestionsDeQcm(docSnap.id);
-        });
-      });
-    }
-
-    window.toggleEntrainement = async (event, qcmId, statutActuel) => {
-      event.stopPropagation();
-      try {
-        await updateDoc(doc(db, "qcms", qcmId), { actifPourEntrainement: !statutActuel });
-      } catch (e) { alert(e.message); }
-    };
-
-    window.supprimerQcm = async (event, qcmId) => {
-      event.stopPropagation();
-      if (confirm("Supprimer ce QCM supprimera toutes ses questions. Continuer ?")) {
-        await deleteDoc(doc(db, "qcms", qcmId));
-      }
-    };
-
-    function chargerQuestionsDeQcm(qcmId) {
-      onSnapshot(collection(db, "qcms", qcmId, "questions"), (snapshot) => {
-        const container = document.getElementById(`questions-${qcmId}`);
-        if (!container) return;
-        container.innerHTML = "";
-
-        let questionNumber = 1;
-        snapshot.forEach((docSnap) => {
-          const q = docSnap.data();
-          const questionDiv = document.createElement("div");
-          questionDiv.className = "question-item";
-          
-          const optLabels = q.options.map((opt, idx) => `${String.fromCharCode(65 + idx)}: ${opt}`).join(" | ");
-          const reponseCorrecteDisplay = Array.isArray(q.reponsesCorrectes) ? q.reponsesCorrectes.join(", ") : q.reponsesCorrectes;
-          const bonusLabel = q.isBonus ? '<span class="question-bonus">⭐ BONUS</span>' : '';
-          
-          const cleanQuestion = q.question.replace(/'/g, "\\'");
-          const cleanOpts = q.options.map(opt => opt.replace(/'/g, "\\'"));
-
-          questionDiv.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
-              <div style="flex:1;">
-                <div class="question-number">Question ${questionNumber}</div>
-                <div style="margin:5px 0; font-weight:bold;">❓ ${q.question} ${bonusLabel}</div>
-                <div style="font-size:13px; color:#aaa; margin:5px 0;">${optLabels}</div>
-                <div class="correct-answers-info">✅ Réponses correctes: ${reponseCorrecteDisplay} | ⏱️ ${q.tempsLimite}s</div>
-              </div>
-              <div style="display:flex; gap:5px; flex-shrink:0;">
-                <button onclick="window.editerQuestion('${qcmId}', '${docSnap.id}', '${cleanQuestion}', '${cleanOpts[0]}', '${cleanOpts[1]}', '${cleanOpts[2] || ''}', '${cleanOpts[3] || ''}', '${reponseCorrecteDisplay}', ${q.tempsLimite}, ${q.isBonus || false})" style="background:#17a2b8; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer; font-size:12px; width:auto; margin:0;">Modifier</button>
-                <button onclick="window.supprimerQuestion('${qcmId}', '${docSnap.id}')" style="background:#dc3545; color:white; border:none; border-radius:4px; padding:6px 10px; cursor:pointer; font-size:12px; width:auto; margin:0;">X</button>
-              </div>
-            </div>
-          `;
-          container.appendChild(questionDiv);
-          questionNumber++;
-        });
-      });
-    }
-
-    window.editerQuestion = (qcmId, questionId, question, optA, optB, optC, optD, correctAnswers, timer, isBonus) => {
-      document.getElementById("editingQuestionId").value = questionId;
-      document.getElementById("qcmSelectQuestion").value = qcmId;
-      document.getElementById("questionText").value = question;
-      document.getElementById("optA").value = optA;
-      document.getElementById("optB").value = optB;
-      document.getElementById("optC").value = optC;
-      document.getElementById("optD").value = optD;
-      document.getElementById("timer").value = timer;
-      document.getElementById("isBonusQuestion").checked = isBonus;
-
-      document.getElementById("checkA").checked = correctAnswers.includes('A');
-      document.getElementById("checkB").checked = correctAnswers.includes('B');
-      document.getElementById("checkC").checked = correctAnswers.includes('C');
-      document.getElementById("checkD").checked = correctAnswers.includes('D');
-
-      document.getElementById("questionFormTitle").innerText = "Modifier la question 📝";
-      document.getElementById("saveBtn").innerText = "Mettre à jour la question";
-      document.getElementById("cancelEditQuestionBtn").style.display = "block";
-    };
-
-    document.getElementById("cancelEditQuestionBtn").addEventListener("click", annulerEditionQuestion);
-    function annulerEditionQuestion() {
-      document.getElementById("editingQuestionId").value = "";
-      document.getElementById("questionText").value = "";
-      document.getElementById("optA").value = "";
-      document.getElementById("optB").value = "";
-      document.getElementById("optC").value = "";
-      document.getElementById("optD").value = "";
-      document.getElementById("checkA").checked = false;
-      document.getElementById("checkB").checked = false;
-      document.getElementById("checkC").checked = false;
-      document.getElementById("checkD").checked = false;
-      document.getElementById("timer").value = "";
-      document.getElementById("isBonusQuestion").checked = false;
-
-      document.getElementById("questionFormTitle").innerText = "Ajouter une question dans un QCM";
-      document.getElementById("saveBtn").innerText = "Enregistrer la question";
-      document.getElementById("cancelEditQuestionBtn").style.display = "none";
-    }
-
-    window.supprimerQuestion = async (qcmId, questionId) => {
-      if (confirm("Supprimer cette question ?")) {
-        await deleteDoc(doc(db, "qcms", qcmId, "questions", questionId));
-      }
-    };
-
-    document.getElementById("saveBtn").addEventListener("click", async () => {
-      const qcmId = document.getElementById("qcmSelectQuestion").value;
-      const qText = document.getElementById("questionText").value.trim();
-      const a = document.getElementById("optA").value.trim();
-      const b = document.getElementById("optB").value.trim();
-      const c = document.getElementById("optC").value.trim();
-      const d = document.getElementById("optD").value.trim();
-      const time = parseInt(document.getElementById("timer").value);
-      const isBonus = document.getElementById("isBonusQuestion").checked;
-      const editingQuestionId = document.getElementById("editingQuestionId").value;
-
-      const correctAnswers = [];
-      if (document.getElementById("checkA").checked) correctAnswers.push("A");
-      if (document.getElementById("checkB").checked) correctAnswers.push("B");
-      if (document.getElementById("checkC").checked) correctAnswers.push("C");
-      if (document.getElementById("checkD").checked) correctAnswers.push("D");
-
-      if (!qcmId || !qText || !a || !b || correctAnswers.length === 0 || !time) {
-        alert("La question, Option A, Option B, au moins une bonne réponse et le temps limite sont obligatoires !");
+      if (!question || !optA || !optB || checked.length === 0) {
+        alert("Veuillez saisir au moins la question, deux options et sélectionner au moins une bonne réponse !");
         return;
       }
 
-      const options = [a, b];
-      if (c !== "") options.push(c);
-      if (d !== "") options.push(d);
+      questionsTemp.push({
+        question,
+        options: [optA, optB, optC, optD].filter(o => o !== ""),
+        reponsesCorrectes: checked,
+        tempsLimite
+      });
 
-      try {
-        if (editingQuestionId) {
-          await setDoc(doc(db, "qcms", qcmId, "questions", editingQuestionId), {
-            question: qText,
-            options: options,
-            reponsesCorrectes: correctAnswers,
-            tempsLimite: time,
-            isBonus: isBonus
-          });
-          alert("Question mise à jour !");
-          annulerEditionQuestion();
-        } else {
-          await addDoc(collection(db, "qcms", qcmId, "questions"), {
-            question: qText,
-            options: options,
-            reponsesCorrectes: correctAnswers,
-            tempsLimite: time,
-            isBonus: isBonus
-          });
-          alert("Question enregistrée !");
-        }
-        document.getElementById("questionText").value = "";
-        document.getElementById("optA").value = "";
-        document.getElementById("optB").value = "";
-        document.getElementById("optC").value = "";
-        document.getElementById("optD").value = "";
-        document.getElementById("timer").value = "";
-        annulerEditionQuestion();
-      } catch (e) { alert(e.message); }
+      // Vider les champs
+      document.getElementById("q-text").value = "";
+      document.getElementById("opt-A").value = "";
+      document.getElementById("opt-B").value = "";
+      document.getElementById("opt-C").value = "";
+      document.getElementById("opt-D").value = "";
+      document.querySelectorAll('.correct-check').forEach(cb => cb.checked = false);
+
+      afficherTempQuestions();
     });
 
-    // ========== ALGORITHME D'ASSEMBLAGE DES SESSIONS ==========
-    
-    function melangerTableau(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-      return array;
-    }
-
-    document.getElementById("startSessionBtn").addEventListener("click", async () => {
-      const sessionId = document.getElementById("customSessionInput").value.trim();
-      const customCountInput = document.getElementById("customQuestionCount").value.trim();
-      
-      const checkboxes = document.querySelectorAll('.qcm-session-checkbox:checked');
-      const selectedQcmIds = Array.from(checkboxes).map(cb => cb.value);
-
-      if (!sessionId) return alert("Veuillez entrer un nom ou numéro de session !");
-      if (selectedQcmIds.length === 0) return alert("Veuillez sélectionner au moins un QCM !");
-
-      currentSessionId = sessionId;
-
-      try {
-        let grandBassinQuestions = [];
-        
-        // 1. Récupération de toutes les questions des QCM coché(s)
-        for (const qcmId of selectedQcmIds) {
-          const qSnap = await getDocs(collection(db, "qcms", qcmId, "questions"));
-          qSnap.forEach((docSnap) => {
-            grandBassinQuestions.push({
-              id: docSnap.id,
-              ...docSnap.data()
-            });
-          });
-        }
-
-        if (grandBassinQuestions.length === 0) {
-          return alert("Les QCM sélectionnés ne contiennent aucune question !");
-        }
-
-        let questionsFinales = [];
-
-        // 2. Traitement selon le choix de l'utilisateur
-        if (customCountInput && !isNaN(parseInt(customCountInput))) {
-          // Tirage aléatoire sur-mesure d'un nombre X de questions
-          const countWanted = parseInt(customCountInput);
-          const questionsMelangees = melangerTableau([...grandBassinQuestions]);
-          questionsFinales = questionsMelangees.slice(0, countWanted);
-        } else {
-          // Si le champ est vide : On prend TOUTES les questions des QCM sélectionnés
-          questionsFinales = grandBassinQuestions;
-        }
-
-        // Clean up participants d'une ancienne session du même nom
-        const participantsRef = collection(db, "sessions", currentSessionId, "participants");
-        const participantsSnap = await getDocs(participantsRef);
-        const deletePromises = participantsSnap.docs.map(d => deleteDoc(doc(db, "sessions", currentSessionId, "participants", d.id)));
-        await Promise.all(deletePromises);
-
-        // Enregistrement de la session dans Firebase
-        await setDoc(doc(db, "sessions", currentSessionId), {
-          statut: "en_attente",
-          questionActive: 0,
-          questionStartTime: null,
-          questions: questionsFinales,
-          selectedQcms: selectedQcmIds,
-          dateCreation: serverTimestamp()
-        });
-
-        document.getElementById("sessionStatus").innerText = `✅ Session "${currentSessionId}" prête avec ${questionsFinales.length} questions au total !`;
-        document.getElementById("qrSessionCodeDisplay").innerText = currentSessionId;
-
-        const traineeUrl = document.getElementById("traineeUrlInput").value.trim();
-        if (traineeUrl) {
-          const joinUrl = `${traineeUrl}?session=${currentSessionId}`;
-          const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(joinUrl)}`;
-          document.getElementById("qrCodeImg").src = qrApiUrl;
-          document.getElementById("qrCodeContainer").style.display = "block";
-        } else {
-          document.getElementById("qrCodeContainer").style.display = "none";
-        }
-
-        document.getElementById("gameControlBox").style.display = "block";
-        ecouterArriveeStagiaires(currentSessionId);
-      } catch (e) { alert("Erreur lors de la création de la session : " + e.message); }
-    });
-
-    function ecouterArriveeStagiaires(sessionId) {
-      if (unsubscribeParticipants) unsubscribeParticipants();
-      const participantsRef = collection(db, "sessions", sessionId, "participants");
-      unsubscribeParticipants = onSnapshot(participantsRef, (snapshot) => {
-        const list = document.getElementById("lobbyList");
-        list.innerHTML = "";
-        let count = 0;
-        snapshot.forEach((docSnap) => {
-          const participant = docSnap.data();
-          const li = document.createElement("li");
-          li.innerText = `👤 ${participant.nom}`;
-          list.appendChild(li);
-          count++;
-        });
-        document.getElementById("playerCount").innerText = count;
+    function afficherTempQuestions() {
+      document.getElementById("temp-q-count").innerText = questionsTemp.length;
+      const list = document.getElementById("temp-questions-list");
+      list.innerHTML = "";
+      questionsTemp.forEach((q, i) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>Q${i+1}: ${q.question}</strong> (Rep: ${q.reponsesCorrectes.join(", ")} | ${q.tempsLimite}s)`;
+        list.appendChild(li);
       });
     }
 
-    document.getElementById("launchGameBtn").addEventListener("click", async () => {
+    document.getElementById("btn-save-qcm").addEventListener("click", async () => {
+      const titre = document.getElementById("qcm-title-input").value.trim();
+      if (!titre || questionsTemp.length === 0) {
+        alert("Veuillez indiquer un titre et ajouter au moins une question !");
+        return;
+      }
+
       try {
-        const sessionDoc = doc(db, "sessions", currentSessionId);
-        const sessionData = await getDoc(sessionDoc);
-        
-        qcmsList = sessionData.data().questions || [];
+        const qcmRef = doc(collection(db, "qcms"));
+        await setDoc(qcmRef, {
+          titre: titre,
+          actifPourEntrainement: false,
+          creeLe: serverTimestamp()
+        });
 
-        if (qcmsList.length === 0) {
-          alert("Cette session n'a aucune question enregistrée !");
-          return;
+        // Enregistrer les questions dans la sous-collection
+        for (let i = 0; i < questionsTemp.length; i++) {
+          await setDoc(doc(db, "qcms", qcmRef.id, "questions", `q_${i+1}`), questionsTemp[i]);
         }
 
-        await setDoc(sessionDoc, { statut: "en_cours", questionActive: 0 }, { merge: true });
-        
-        for (let i = 0; i < qcmsList.length; i++) {
-          await setDoc(sessionDoc, { 
-            questionActive: i,
-            questionStartTime: serverTimestamp()
-          }, { merge: true });
-          
-          document.getElementById("gameProgress").innerText = `Question ${i + 1} sur ${qcmsList.length} en cours...`;
-          
-          const tempsDAttente = (qcmsList[i].tempsLimite + 2) * 1000;
-          await new Promise(resolve => setTimeout(resolve, tempsDAttente));
-        }
-
-        await setDoc(sessionDoc, { statut: "terminee" }, { merge: true });
-        document.getElementById("gameProgress").innerText = "Le QCM est fini !";
-      } catch (e) { alert(e.message); }
+        alert("QCM enregistré avec succès !");
+        document.getElementById("qcm-title-input").value = "";
+        questionsTemp = [];
+        afficherTempQuestions();
+        chargerBibliothequeQCM();
+        chargerSelectQCM();
+      } catch (e) {
+        alert("Erreur lors de l'enregistrement : " + e.message);
+      }
     });
 
-    function chargerHistoriqueSessions() {
-      onSnapshot(collection(db, "sessions"), (snapshot) => {
-        const list = document.getElementById("historyList");
-        list.innerHTML = "";
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          const date = data.dateCreation ? new Date(data.dateCreation.seconds * 1000).toLocaleDateString("fr-FR") : "Date inconnue";
-          const li = document.createElement("li");
-          
-          li.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-              <span><strong>ID : ${docSnap.id}</strong> (${date})</span>
-              <div>
-                <button onclick="window.consulterScores('${docSnap.id}')" style="background:#17a2b8; width:auto; padding:6px 12px; font-size:14px; margin:0 5px 0 0; display:inline-block;">Scores</button>
-                <button onclick="window.supprimerSession('${docSnap.id}')" style="background:#dc3545; width:auto; padding:6px 12px; font-size:14px; margin:0; display:inline-block;">Supprimer</button>
-              </div>
-            </div>
-          `;
-          list.appendChild(li);
-        });
-      });
-    }
+    async function chargerBibliothequeQCM() {
+      const container = document.getElementById("qcm-library-list");
+      container.innerHTML = "Chargement...";
 
-    window.supprimerSession = async (sessionId) => {
-      if (confirm("Voulez-vous supprimer définitivement l'historique de cette session ?")) {
-        try {
-          await deleteDoc(doc(db, "sessions", sessionId));
-          alert("Session supprimée !");
-          document.getElementById("historyScoresList").style.display = "none";
-        } catch (e) { alert(e.message); }
-      }
-    };
-
-    window.consulterScores = async (sessionId) => {
-      const q = query(collection(db, "sessions", sessionId, "participants"), orderBy("score", "desc"));
       try {
-        const querySnap = await getDocs(q);
-        const detailBox = document.getElementById("historyScoresList");
-        detailBox.style.display = "block";
-        detailBox.innerHTML = `<h3 style="color:#dc3545;">Classement de la session ${sessionId} :</h3>`;
-        let pos = 1;
+        const querySnap = await getDocs(collection(db, "qcms"));
+        container.innerHTML = "";
+
         querySnap.forEach((docSnap) => {
-          const p = docSnap.data();
-          const pId = docSnap.id;
-          
-          const divParticipant = document.createElement("div");
-          divParticipant.style.borderBottom = "1px solid #333";
-          divParticipant.style.padding = "10px 0";
-          divParticipant.innerHTML = `
-            <div style="cursor:pointer; display:flex; justify-content:space-between; font-weight:bold;" onclick="window.toggleDetails('${pId}')">
-              <span>#${pos} - 👤 ${p.nom}</span>
-              <span>🏆 ${p.score} / 1000 pts</span>
+          const qcm = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "qcm-item";
+
+          const isChecked = qcm.actifPourEntrainement ? "checked" : "";
+
+          div.innerHTML = `
+            <div>
+              <strong>📖 ${qcm.titre}</strong>
             </div>
-            <div id="details-${pId}" style="display:none; margin-top:8px; padding-left:15px; font-size:14px; color:#aaa;">
-              <strong>Rapport de correction :</strong>
-              <div id="reponses-container-${pId}">Chargement...</div>
+            <div style="display:flex; align-items:center; gap:15px;">
+              <label style="font-size:13px; cursor:pointer;">
+                <input type="checkbox" ${isChecked} onchange="toggleEntrainement('${docSnap.id}', this.checked)">
+                Ouvert à l'entraînement
+              </label>
             </div>
           `;
-          detailBox.appendChild(divParticipant);
-          
-          chargerDetailCorrection(sessionId, pId);
-          pos++;
+          container.appendChild(div);
         });
-        if (pos === 1) detailBox.innerHTML += "<p style='color:#666;'>Aucun participant.</p>";
-      } catch (e) { alert(e.message); }
-    };
-
-    window.toggleDetails = (pId) => {
-      const el = document.getElementById(`details-${pId}`);
-      if (el) el.style.display = el.style.display === "none" ? "block" : "none";
-    };
-
-    async function chargerDetailCorrection(sessionId, participantId) {
-      try {
-        const pSnap = await getDoc(doc(db, "sessions", sessionId, "participants", participantId));
-        const container = document.getElementById(`reponses-container-${participantId}`);
-        if (!container) return;
-
-        const data = pSnap.data();
-        if (data && data.reponses && Object.keys(data.reponses).length > 0) {
-          container.innerHTML = "";
-          const reponses = data.reponses;
-          
-          Object.keys(reponses).forEach((index) => {
-            const r = reponses[index];
-            const div = document.createElement("div");
-            div.style.margin = "4px 0";
-            
-            const isCorrect = r.correct;
-            const textStyle = isCorrect ? 'class="correct-ans"' : 'class="wrong-ans"';
-            const icon = isCorrect ? '✅' : '❌';
-            
-            div.innerHTML = `
-              ${icon} Quest ${parseInt(index) + 1} : ${r.question}<br>
-              &nbsp;&nbsp;&nbsp;&nbsp;Choix : <span ${textStyle}>${r.reponseChoisie || "Aucune"}</span> (Correcte(s) : ${r.reponseCorrecte})
-            `;
-            container.appendChild(div);
-          });
-        } else {
-          container.innerHTML = "Pas de réponses enregistrées pour cette partie.";
-        }
-      } catch (e) { console.error(e); }
+      } catch (e) { container.innerHTML = "Erreur de chargement."; }
     }
+
+    window.toggleEntrainement = async (qcmId, status) => {
+      await updateDoc(doc(db, "qcms", qcmId), { actifPourEntrainement: status });
+    };
+
+    // --- CHARGEMENT DU SELECT EN LIVE ---
+    async function chargerSelectQCM() {
+      const select = document.getElementById("select-qcm-live");
+      select.innerHTML = "";
+      const querySnap = await getDocs(collection(db, "qcms"));
+      querySnap.forEach(docSnap => {
+        const option = document.createElement("option");
+        option.value = docSnap.id;
+        option.innerText = docSnap.data().titre;
+        select.appendChild(option);
+      });
+    }
+    chargerSelectQCM();
+
+    // --- SESSION LIVE CONTROL ---
+    document.getElementById("btn-create-session").addEventListener("click", async () => {
+      const qcmId = document.getElementById("select-qcm-live").value;
+      let code = document.getElementById("input-session-code").value.trim().toUpperCase();
+
+      if (!qcmId) {
+        alert("Sélectionnez un QCM !");
+        return;
+      }
+      if (!code) code = "QCM" + Math.floor(100 + Math.random() * 900);
+
+      // Charger les questions
+      const qSnap = await getDocs(collection(db, "qcms", qcmId, "questions"));
+      sessionQuestions = qSnap.docs.map(d => d.data());
+
+      if (sessionQuestions.length === 0) {
+        alert("Ce QCM ne contient aucune question !");
+        return;
+      }
+
+      currentSessionId = code;
+      currentQuestionIndex = 0;
+
+      // Créer la session dans Firebase
+      await setDoc(doc(db, "sessions", currentSessionId), {
+        statut: "en_attente",
+        questionActive: 0,
+        questions: sessionQuestions,
+        creeLe: serverTimestamp()
+      });
+
+      // Configurer l'affichage de la session
+      document.getElementById("active-code-display").innerText = currentSessionId;
+      
+      // Générer lien et QR Code
+      const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/'));
+      const joinUrl = `${baseUrl}/stagiaire.html?session=${currentSessionId}`;
+      document.getElementById("direct-link").href = joinUrl;
+      document.getElementById("direct-link").innerText = joinUrl;
+      document.getElementById("qr-code-img").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(joinUrl)}`;
+
+      document.getElementById("session-control-box").style.display = "block";
+      
+      ecouterParticipants();
+    });
+
+    // Écoute temps réel des participants
+    function ecouterParticipants() {
+      onSnapshot(collection(db, "sessions", currentSessionId, "participants"), (snap) => {
+        document.getElementById("count-participants").innerText = snap.size;
+        const tbody = document.getElementById("participants-table-body");
+        tbody.innerHTML = "";
+
+        snap.forEach(docSnap => {
+          const data = docSnap.data();
+          const tr = document.createElement("tr");
+
+          let lastAns = "-";
+          if (data.reponses && data.reponses[currentQuestionIndex]) {
+            lastAns = data.reponses[currentQuestionIndex].reponseChoisie;
+          }
+
+          tr.innerHTML = `
+            <td><strong>${data.nom}</strong></td>
+            <td><span style="color:#b30000; font-weight:bold;">${data.score} pts</span></td>
+            <td>${lastAns}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+    }
+
+    // Lancer une question
+    document.getElementById("btn-start-question").addEventListener("click", async () => {
+      const q = sessionQuestions[currentQuestionIndex];
+      document.getElementById("current-question-title").innerText = `Q${currentQuestionIndex + 1}/${sessionQuestions.length} : ${q.question}`;
+
+      await updateDoc(doc(db, "sessions", currentSessionId), {
+        statut: "en_cours",
+        questionActive: currentQuestionIndex,
+        questionStartTime: serverTimestamp()
+      });
+
+      document.getElementById("btn-start-question").disabled = true;
+      document.getElementById("btn-next-question").disabled = false;
+
+      // Déclencher le compte à rebours visuel côté formateur
+      let tempsRestant = q.tempsLimite;
+      document.getElementById("timer-live-display").innerText = `${tempsRestant}s`;
+
+      if (liveTimerInterval) clearInterval(liveTimerInterval);
+      liveTimerInterval = setInterval(() => {
+        tempsRestant--;
+        document.getElementById("timer-live-display").innerText = `${tempsRestant}s`;
+        if (tempsRestant <= 0) {
+          clearInterval(liveTimerInterval);
+        }
+      }, 1000);
+    });
+
+    // Passer à la question suivante
+    document.getElementById("btn-next-question").addEventListener("click", () => {
+      if (currentQuestionIndex + 1 < sessionQuestions.length) {
+        currentQuestionIndex++;
+        const q = sessionQuestions[currentQuestionIndex];
+        document.getElementById("current-question-title").innerText = `Question ${currentQuestionIndex + 1}/${sessionQuestions.length} prête.`;
+        document.getElementById("timer-live-display").innerText = `${q.tempsLimite}s`;
+        document.getElementById("btn-start-question").disabled = false;
+        document.getElementById("btn-next-question").disabled = true;
+      } else {
+        alert("C'était la dernière question ! Vous pouvez terminer la session.");
+      }
+    });
+
+    // Terminer la session
+    document.getElementById("btn-end-session").addEventListener("click", async () => {
+      if (confirm("Voulez-vous vraiment clore cette session live ?")) {
+        await updateDoc(doc(db, "sessions", currentSessionId), {
+          statut: "terminee"
+        });
+        if (liveTimerInterval) clearInterval(liveTimerInterval);
+        document.getElementById("current-question-title").innerText = "Session terminée ! 🏆";
+        document.getElementById("timer-live-display").innerText = "";
+      }
+    });
   </script>
 </body>
 </html>
