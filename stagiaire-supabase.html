@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quiz - Stagiaire</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+        }
+        
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .mode-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .mode-card {
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+            font-weight: 600;
+        }
+        
+        .mode-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .mode-live {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+        }
+        
+        .mode-live:hover {
+            border-color: #ff6b6b;
+        }
+        
+        .mode-training {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+            color: white;
+        }
+        
+        .mode-training:hover {
+            border-color: #4ecdc4;
+        }
+        
+        .mode-card-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .mode-card-desc {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 8px 16px rgba(108, 117, 125, 0.4);
+        }
+        
+        .screen {
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .question-container {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .question-text {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .timer {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .timer.warning {
+            background: #fff3cd;
+            color: #ff6b6b;
+            animation: blink 0.5s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0.7; }
+        }
+        
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .option:hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+            transform: translateY(-2px);
+        }
+        
+        .option.selected {
+            border-color: #667eea;
+            background: #e8f0fe;
+        }
+        
+        .option.multi {
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option.multi input[type="checkbox"] {
+            margin-right: 12px;
+            width: 18px;
+            height: 18px;
+        }
+        
+        .option.correct {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .option.incorrect {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
+        .participant-list {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .participant-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .participant-item:last-child {
+            border-bottom: none;
+        }
+        
+        .result-screen {
+            text-align: center;
+        }
+        
+        .result-score {
+            font-size: 64px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        
+        .result-message {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .bonus-badge {
+            background: #ffc107;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .mode-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .options {
+                grid-template-columns: 1fr;
+            }
+            
+            .timer {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- SCREEN: MODE SELECTION -->
+    <div id="modeScreen" class="screen active">
+        <h1>🎯 Quiz</h1>
+        <div class="mode-selector">
+            <div class="mode-card mode-live" onclick="selectMode('live')">
+                <div class="mode-card-title">🔴 Mode Live</div>
+                <div class="mode-card-desc">Rejoindre une session en direct</div>
+            </div>
+            <div class="mode-card mode-training" onclick="selectMode('training')">
+                <div class="mode-card-title">📚 Entraînement</div>
+                <div class="mode-card-desc">S'entraîner seul</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SCREEN: LIVE JOIN -->
+    <div id="liveJoinScreen" class="screen">
+        <h2>🔴 Mode Live</h2>
+        <div id="liveJoinError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Nom</label>
+            <input type="text" id="liveNom" placeholder="Votre nom">
+        </div>
+        <div class="form-group">
+            <label>Code de session</label>
+            <input type="text" id="liveCode" placeholder="Ex: ABC123" id="sessionInput">
+        </div>
+        <button class="btn" onclick="joinLiveSession()" style="margin-bottom: 10px;">Rejoindre</button>
+        <button class="btn btn-secondary" onclick="selectMode(null)">Retour</button>
+    </div>
+    
+    <!-- SCREEN: TRAINING SELECT -->
+    <div id="trainingSelectScreen" class="screen">
+        <h2>📚 Mode Entraînement</h2>
+        <div id="trainingSelectError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Votre nom</label>
+            <input type="text" id="trainingNom" placeholder="Votre nom">
+        </div>
+        <div class="form-group">
+            <label>Sélectionner un QCM</label>
+            <select id="trainingQCMSelect">
+                <option value="">-- Choisir un QCM --</option>
+            </select>
+        </div>
+        <button class="btn" onclick="startTraining()" style="margin-bottom: 10px;">Commencer</button>
+        <button class="btn btn-secondary" onclick="selectMode(null)">Retour</button>
+    </div>
+    
+    <!-- SCREEN: LIVE QUESTION -->
+    <div id="liveQuestionScreen" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <strong>Session:</strong> <span id="liveSessionCode" style="color: #667eea; font-weight: 700;"></span>
+                <br>
+                <strong>Participant:</strong> <span id="liveParticipantName"></span>
+            </div>
+            <div style="text-align: right;">
+                <div id="liveScore" class="score-display"></div>
+            </div>
+        </div>
+        <div class="question-container">
+            <div class="timer" id="liveTimer">⏱️</div>
+            <div class="question-text" id="liveQuestionText"></div>
+            <div class="options" id="liveOptions"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="leaveLiveSession()">Quitter</button>
+    </div>
+    
+    <!-- SCREEN: TRAINING QUESTION -->
+    <div id="trainingQuestionScreen" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <div>
+                <strong id="trainingQCMTitle"></strong>
+                <br>
+                <strong>Question <span id="trainingQuestionNum">1</span> / <span id="trainingQuestionTotal">1</span></strong>
+            </div>
+            <div style="text-align: right;">
+                <div id="trainingScore" class="score-display"></div>
+            </div>
+        </div>
+        <div class="question-container">
+            <div class="timer" id="trainingTimer">⏱️</div>
+            <div class="question-text" id="trainingQuestionText"></div>
+            <div class="options" id="trainingOptions"></div>
+        </div>
+        <button class="btn" id="trainingSubmitBtn" onclick="submitTrainingAnswer()">Valider</button>
+    </div>
+    
+    <!-- SCREEN: TRAINING RESULT -->
+    <div id="trainingResultScreen" class="screen">
+        <div class="result-screen">
+            <h2 id="resultTitle">Réponse correcte !</h2>
+            <div id="resultBonus" class="bonus-badge" style="display: none;">⭐ QUESTION BONUS</div>
+            <div class="result-score" id="resultPoints">+100</div>
+            <div class="result-message" id="resultMessage"></div>
+            <button class="btn" onclick="nextTrainingQuestion()" id="nextBtn">Question suivante</button>
+            <button class="btn btn-secondary" id="finishBtn" style="display: none;" onclick="finishTraining()">Terminer</button>
+        </div>
+    </div>
+    
+    <!-- SCREEN: TRAINING FINAL -->
+    <div id="trainingFinalScreen" class="screen">
+        <div class="result-screen">
+            <h2>Quiz terminé ! 🎉</h2>
+            <div class="result-score" id="finalScore">0</div>
+            <div class="result-message">Bravo pour votre entraînement !</div>
+            <button class="btn" onclick="selectMode(null)">Retour au menu</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Supabase Configuration
+const SUPABASE_URL = 'https://oojyvgxhgavaowmtvptb.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_BzZfcHu9qGPFvFXXd4eXMA_nfEosLA_';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentMode = null;
+let currentSessionId = null;
+let currentParticipantName = null;
+let currentParticipantScore = 0;
+let sessionData = null;
+let currentQCMId = null;
+let currentQuestionIndex = 0;
+let trainingQuestions = [];
+let userAnswers = [];
+let timerInterval = null;
+let timeRemaining = 0;
+let canAnswer = true;
+let sessionSubscription = null;
+
+// ==================== UTILS ====================
+function showScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+    document.getElementById(screenId).classList.add('active');
+}
+
+function showError(elementId, message) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 5000);
+    }
+}
+
+// Audio métronome
+function playMetronomeSound() {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+// ==================== MODE SELECTION ====================
+function selectMode(mode) {
+    currentMode = mode;
+    if (mode === 'live') {
+        showScreen('liveJoinScreen');
+        // Vérifier si le code session est dans l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionFromUrl = urlParams.get('session');
+        if (sessionFromUrl) {
+            document.getElementById('liveCode').value = sessionFromUrl;
+            document.getElementById('liveNom').focus();
+        }
+    } else if (mode === 'training') {
+        showScreen('trainingSelectScreen');
+        loadTrainingQCMs();
+    } else {
+        showScreen('modeScreen');
+        currentMode = null;
+    }
+}
+
+// ==================== LIVE MODE ====================
+async function joinLiveSession() {
+    const nom = document.getElementById('liveNom').value.trim();
+    const code = document.getElementById('liveCode').value.trim().toUpperCase();
+    
+    if (!nom || !code) {
+        showError('liveJoinError', 'Entrez votre nom et le code');
+        return;
+    }
+    
+    // Vérifier que la session existe
+    const { data: session, error: sessionError } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('id', code)
+        .single();
+    
+    if (sessionError || !session) {
+        showError('liveJoinError', 'Session non trouvée');
+        return;
+    }
+    
+    // Créer le participant
+    const participantId = 'p-' + Date.now();
+    const { error: participantError } = await supabase
+        .from('participants')
+        .insert([{
+            id: participantId,
+            session_id: code,
+            nom,
+            score: 0,
+            reponses: {}
+        }]);
+    
+    if (participantError) {
+        showError('liveJoinError', participantError.message);
+        return;
+    }
+    
+    currentSessionId = code;
+    currentParticipantName = nom;
+    currentParticipantScore = 0;
+    sessionData = session;
+    
+    document.getElementById('liveSessionCode').textContent = code;
+    document.getElementById('liveParticipantName').textContent = nom;
+    
+    // S'abonner aux mises à jour de la session
+    subscribeLiveSession();
+    showScreen('liveQuestionScreen');
+}
+
+function subscribeLiveSession() {
+    if (sessionSubscription) {
+        sessionSubscription.unsubscribe();
+    }
+    
+    sessionSubscription = supabase
+        .channel(`session:${currentSessionId}`)
+        .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'sessions',
+            filter: `id=eq.${currentSessionId}`
+        }, (payload) => {
+            sessionData = payload.new;
+            displayLiveQuestion(sessionData);
+        })
+        .subscribe();
+    
+    displayLiveQuestion(sessionData);
+}
+
+async function displayLiveQuestion(session) {
+    if (!session || !session.qcm_id) {
+        document.getElementById('liveTimer').textContent = '⏱️ Attente...';
+        document.getElementById('liveQuestionText').textContent = 'En attente d\'une question...';
+        document.getElementById('liveOptions').innerHTML = '';
+        return;
+    }
+    
+    const questionIndex = session.questionActive;
+    
+    // Charger les questions du QCM
+    const { data: questions } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('qcm_id', session.qcm_id)
+        .order('id');
+    
+    if (!questions || !questions[questionIndex]) {
+        document.getElementById('liveTimer').textContent = '✅ Quiz terminé';
+        return;
+    }
+    
+    const question = questions[questionIndex];
+    document.getElementById('liveQuestionText').textContent = `Question ${questionIndex + 1}: ${question.question}`;
+    
+    // Afficher les options
+    const optionsHTML = question.options.map((opt, idx) => `
+        <div class="option" onclick="selectLiveOption(${idx}, '${opt.replace(/'/g, "\\'")}', ${question.reponsesCorrectes.includes(opt) ? 'true' : 'false'})">
+            ${String.fromCharCode(65 + idx)}. ${opt}
+        </div>
+    `).join('');
+    
+    document.getElementById('liveOptions').innerHTML = optionsHTML;
+    
+    // Démarrer le timer
+    startTimer(question.tempsLimite, 'live');
+}
+
+function selectLiveOption(idx, option, isCorrect) {
+    if (!canAnswer) return;
+    
+    canAnswer = false;
+    clearInterval(timerInterval);
+    
+    // Déjà répondu pour cette question
+    const { data: participant } = supabase.auth.getUser();
+    
+    // Enregistrer la réponse
+    const points = isCorrect ? 100 : 0;
+    updateLiveScore(points);
+}
+
+async function updateLiveScore(points) {
+    currentParticipantScore += points;
+    document.getElementById('liveScore').textContent = currentParticipantScore + ' pts';
+    
+    // Sauvegarder le score
+    // (À implémenter : sauvegarder dans la BD)
+}
+
+function leaveLiveSession() {
+    if (sessionSubscription) {
+        sessionSubscription.unsubscribe();
+    }
+    clearInterval(timerInterval);
+    selectMode(null);
+}
+
+// ==================== TRAINING MODE ====================
+async function loadTrainingQCMs() {
+    const { data, error } = await supabase
+        .from('qcms')
+        .select('*')
+        .eq('actifPourEntrainement', true);
+    
+    if (error) {
+        console.error('Erreur:', error);
+        return;
+    }
+    
+    const select = document.getElementById('trainingQCMSelect');
+    select.innerHTML = '<option value="">-- Choisir un QCM --</option>' + 
+        data.map(qcm => `<option value="${qcm.id}">${qcm.titre}</option>`).join('');
+}
+
+async function startTraining() {
+    const nom = document.getElementById('trainingNom').value.trim();
+    const qcmId = document.getElementById('trainingQCMSelect').value;
+    
+    if (!nom || !qcmId) {
+        showError('trainingSelectError', 'Complétez tous les champs');
+        return;
+    }
+    
+    currentQCMId = qcmId;
+    currentParticipantName = nom;
+    currentParticipantScore = 0;
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    canAnswer = true;
+    
+    // Charger les questions
+    const { data: qcm } = await supabase
+        .from('qcms')
+        .select('titre')
+        .eq('id', qcmId)
+        .single();
+    
+    const { data: questions } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('qcm_id', qcmId)
+        .order('id');
+    
+    trainingQuestions = questions;
+    document.getElementById('trainingQCMTitle').textContent = qcm.titre;
+    document.getElementById('trainingQuestionTotal').textContent = questions.length;
+    
+    displayTrainingQuestion();
+}
+
+function displayTrainingQuestion() {
+    if (currentQuestionIndex >= trainingQuestions.length) {
+        showTrainingFinal();
+        return;
+    }
+    
+    const question = trainingQuestions[currentQuestionIndex];
+    canAnswer = true;
+    
+    document.getElementById('trainingQuestionNum').textContent = currentQuestionIndex + 1;
+    document.getElementById('trainingQuestionText').textContent = `Question ${currentQuestionIndex + 1}: ${question.question}`;
+    document.getElementById('trainingScore').textContent = currentParticipantScore + ' pts';
+    
+    // Déterminer si la question permet multiples réponses
+    const isMultiple = question.reponsesCorrectes.length > 1;
+    
+    const optionsHTML = question.options.map((opt, idx) => {
+        if (isMultiple) {
+            return `
+                <label class="option multi">
+                    <input type="checkbox" id="option-${idx}" onchange="selectTrainingOption(${idx}, '${opt.replace(/'/g, "\\'")}')">
+                    ${String.fromCharCode(65 + idx)}. ${opt}
+                </label>
+            `;
+        } else {
+            return `
+                <div class="option" onclick="selectTrainingOption(${idx}, '${opt.replace(/'/g, "\\'")}')" id="option-${idx}">
+                    ${String.fromCharCode(65 + idx)}. ${opt}
+                </div>
+            `;
+        }
+    }).join('');
+    
+    document.getElementById('trainingOptions').innerHTML = optionsHTML;
+    document.getElementById('trainingSubmitBtn').textContent = 'Valider';
+    document.getElementById('trainingSubmitBtn').disabled = false;
+    
+    startTimer(question.tempsLimite, 'training');
+    showScreen('trainingQuestionScreen');
+}
+
+function selectTrainingOption(idx, option) {
+    const question = trainingQuestions[currentQuestionIndex];
+    const isMultiple = question.reponsesCorrectes.length > 1;
+    
+    if (isMultiple) {
+        // Mode checkbox : rien à faire, c'est géré par onChange
+        return;
+    }
+    
+    // Mode radio
+    document.querySelectorAll('#trainingOptions .option').forEach(el => {
+        el.classList.remove('selected');
+    });
+    document.getElementById(`option-${idx}`).classList.add('selected');
+}
+
+async function submitTrainingAnswer() {
+    if (!canAnswer) return;
+    
+    const question = trainingQuestions[currentQuestionIndex];
+    const isMultiple = question.reponsesCorrectes.length > 1;
+    
+    let selectedAnswers = [];
+    
+    if (isMultiple) {
+        selectedAnswers = Array.from(document.querySelectorAll('#trainingOptions input:checked'))
+            .map(el => el.nextSibling.textContent.substring(3).trim());
+    } else {
+        const selected = document.querySelector('#trainingOptions .option.selected');
+        if (selected) {
+            selectedAnswers = [selected.textContent.substring(3).trim()];
+        }
+    }
+    
+    if (selectedAnswers.length === 0) {
+        alert('Sélectionnez une réponse');
+        return;
+    }
+    
+    canAnswer = false;
+    clearInterval(timerInterval);
+    
+    // Vérifier les réponses
+    const isCorrect = selectedAnswers.length === question.reponsesCorrectes.length &&
+                      selectedAnswers.every(a => question.reponsesCorrectes.includes(a));
+    
+    const points = isCorrect ? 100 : 0;
+    currentParticipantScore += points;
+    
+    userAnswers.push({
+        questionIndex: currentQuestionIndex,
+        question: question.question,
+        selected: selectedAnswers,
+        correct: question.reponsesCorrectes,
+        isCorrect,
+        points,
+        isBonus: question.isBonus
+    });
+    
+    // Afficher le résultat
+    showTrainingResult(isCorrect, question, points);
+}
+
+function showTrainingResult(isCorrect, question, points) {
+    const titleEl = document.getElementById('resultTitle');
+    const messageEl = document.getElementById('resultMessage');
+    const pointsEl = document.getElementById('resultPoints');
+    const bonusEl = document.getElementById('resultBonus');
+    const nextBtn = document.getElementById('nextBtn');
+    const finishBtn = document.getElementById('finishBtn');
+    
+    if (isCorrect) {
+        titleEl.textContent = '✅ Correct !';
+        titleEl.style.color = '#28a745';
+        messageEl.textContent = `Bonne réponse ! ${question.isBonus ? '(Question Bonus)' : ''}`;
+    } else {
+        titleEl.textContent = '❌ Incorrect';
+        titleEl.style.color = '#dc3545';
+        messageEl.textContent = `Réponse correcte: ${question.reponsesCorrectes.join(', ')}`;
+    }
+    
+    pointsEl.textContent = `${points > 0 ? '+' : ''}${points} pts`;
+    pointsEl.style.color = points > 0 ? '#28a745' : '#dc3545';
+    
+    if (question.isBonus) {
+        bonusEl.style.display = 'inline-block';
+    } else {
+        bonusEl.style.display = 'none';
+    }
+    
+    if (currentQuestionIndex < trainingQuestions.length - 1) {
+        nextBtn.style.display = 'block';
+        finishBtn.style.display = 'none';
+    } else {
+        nextBtn.style.display = 'none';
+        finishBtn.style.display = 'block';
+    }
+    
+    showScreen('trainingResultScreen');
+}
+
+function nextTrainingQuestion() {
+    currentQuestionIndex++;
+    displayTrainingQuestion();
+}
+
+function showTrainingFinal() {
+    document.getElementById('finalScore').textContent = currentParticipantScore + ' pts';
+    showScreen('trainingFinalScreen');
+}
+
+function finishTraining() {
+    nextTrainingQuestion();
+}
+
+// ==================== TIMER ====================
+function startTimer(duration, mode) {
+    timeRemaining = duration;
+    const timerId = mode === 'live' ? 'liveTimer' : 'trainingTimer';
+    
+    updateTimerDisplay(timerId);
+    
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        updateTimerDisplay(timerId);
+        
+        if (timeRemaining === 5) {
+            playMetronomeSound();
+        } else if (timeRemaining > 0 && timeRemaining <= 5) {
+            playMetronomeSound();
+        }
+        
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            canAnswer = false;
+            if (mode === 'training') {
+                submitTrainingAnswer();
+            }
+        }
+    }, 1000);
+}
+
+function updateTimerDisplay(timerId) {
+    const timerEl = document.getElementById(timerId);
+    timerEl.textContent = timeRemaining + 's';
+    
+    if (timeRemaining <= 5) {
+        timerEl.classList.add('warning');
+    } else {
+        timerEl.classList.remove('warning');
+    }
+}
+
+// QR Code support
+const urlParams = new URLSearchParams(window.location.search);
+const sessionFromUrl = urlParams.get('session');
+if (sessionFromUrl) {
+    // Si le code session est dans l'URL, aller au mode live
+    // Le code est pré-rempli dans selectMode('live')
+}
+</script>
+
+</body>
+</html>

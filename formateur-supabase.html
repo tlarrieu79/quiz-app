@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Quiz - Formateur</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 90vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+        
+        .logout-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+        
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            overflow-x: auto;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: #f0f0f0;
+        }
+        
+        .tab-btn:hover {
+            background: #eeeeee;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .login-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .login-card h2 {
+            margin-bottom: 30px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 8px 16px rgba(108, 117, 125, 0.4);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            box-shadow: 0 8px 16px rgba(220, 53, 69, 0.4);
+        }
+        
+        .qcm-section {
+            margin-bottom: 20px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .qcm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .qcm-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .qcm-toggle {
+            font-size: 20px;
+            margin-left: 10px;
+        }
+        
+        .qcm-questions {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .qcm-questions.expanded {
+            display: block;
+        }
+        
+        .question-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .question-text {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .question-options {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .question-options span {
+            display: inline-block;
+            background: #e8f0fe;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px;
+        }
+        
+        .question-correct {
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .modal-header {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .checkbox-group {
+            margin-bottom: 15px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 10px;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+        
+        .session-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .session-code {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .session-info {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .session-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .folder-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .folder-item:hover {
+            background: #f9f9f9;
+            border-color: #667eea;
+        }
+        
+        .folder-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .folder-details {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .folder-details.expanded {
+            display: block;
+        }
+        
+        .file-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #ddd;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .upload-zone {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f0f7ff;
+        }
+        
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-container">
+    <div class="login-card">
+        <h2>🔐 Formateur Login</h2>
+        <div id="loginError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="votre@email.com">
+        </div>
+        <div class="form-group">
+            <label>Mot de passe</label>
+            <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="btn" onclick="login()" style="width: 100%;">Connexion</button>
+        <div style="margin-top: 15px; text-align: center;">
+            <p style="color: #666; font-size: 13px;">Pas encore inscrit ? <a href="#" onclick="toggleSignup()" style="color: #667eea; font-weight: 600;">S'inscrire</a></p>
+        </div>
+        <div id="signupForm" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signupEmail" placeholder="votre@email.com">
+            </div>
+            <div class="form-group">
+                <label>Mot de passe</label>
+                <input type="password" id="signupPassword" placeholder="••••••••">
+            </div>
+            <button class="btn" onclick="signup()" style="width: 100%;">Créer un compte</button>
+        </div>
+    </div>
+</div>
+
+<div id="appContainer" style="display: none;">
+    <div class="container">
+        <div class="header">
+            <h1>📊 Tableau de Bord Formateur</h1>
+            <button class="logout-btn" onclick="logout()">Déconnexion</button>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('qcms')">📝 QCM</button>
+            <button class="tab-btn" onclick="switchTab('sessions')">🔴 Sessions Live</button>
+            <button class="tab-btn" onclick="switchTab('docs')">📁 Documentation</button>
+        </div>
+        
+        <div class="content">
+            <!-- TAB: QCM -->
+            <div id="qcms" class="tab-content active">
+                <button class="btn" onclick="openQCMModal()" style="margin-bottom: 20px;">+ Nouveau QCM</button>
+                <div id="qcmList"></div>
+            </div>
+            
+            <!-- TAB: SESSIONS -->
+            <div id="sessions" class="tab-content">
+                <button class="btn" onclick="openSessionModal()" style="margin-bottom: 20px;">+ Nouvelle Session</button>
+                <div id="sessionList"></div>
+            </div>
+            
+            <!-- TAB: DOCS -->
+            <div id="docs" class="tab-content">
+                <button class="btn" onclick="openFolderModal()" style="margin-bottom: 20px;">+ Nouveau Dossier</button>
+                <div id="folderList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: QCM -->
+<div id="qcmModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Créer/Éditer QCM</div>
+        <div id="qcmModalError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Titre du QCM</label>
+            <input type="text" id="qcmTitre" placeholder="Ex: Mathématiques - Chapitre 5">
+        </div>
+        <div class="checkbox-group">
+            <label>
+                <input type="checkbox" id="qcmActif"> ✅ Actif pour entraînement
+            </label>
+        </div>
+        
+        <div style="margin-top: 20px; margin-bottom: 20px;">
+            <h3 style="margin-bottom: 15px;">Questions</h3>
+            <div id="questionsList"></div>
+            <button class="btn" onclick="addQuestion()" style="width: 100%; margin-top: 10px;">+ Ajouter une question</button>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="saveQCM()" style="flex: 1;">Enregistrer</button>
+            <button class="btn btn-secondary" onclick="closeQCMModal()" style="flex: 1;">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: SESSION -->
+<div id="sessionModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Nouvelle Session</div>
+        <div id="sessionModalError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Sélectionner un QCM</label>
+            <select id="sessionQCM" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 6px;">
+                <option value="">-- Choisir un QCM --</option>
+            </select>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="createSession()" style="flex: 1;">Créer</button>
+            <button class="btn btn-secondary" onclick="closeSessionModal()" style="flex: 1;">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: FOLDER -->
+<div id="folderModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">Nouveau Dossier</div>
+        <div id="folderModalError" class="error" style="display: none;"></div>
+        <div class="form-group">
+            <label>Nom du dossier</label>
+            <input type="text" id="folderName" placeholder="Ex: Ressources - Chapitre 5">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button class="btn" onclick="createFolder()" style="flex: 1;">Créer</button>
+            <button class="btn btn-secondary" onclick="closeFolderModal()" style="flex: 1;">Annuler</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Supabase Configuration
+const SUPABASE_URL = 'https://oojyvgxhgavaowmtvptb.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_BzZfcHu9qGPFvFXXd4eXMA_nfEosLA_';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentQCMId = null;
+let editingQCMId = null;
+let questions = [];
+let currentFolderId = null;
+
+// ==================== AUTH ====================
+async function login() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    
+    if (!email || !password) {
+        showError('loginError', 'Veuillez remplir tous les champs');
+        return;
+    }
+    
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+        showError('loginError', error.message);
+    } else {
+        currentUser = data.user;
+        showApp();
+        loadQCMs();
+        loadSessions();
+        loadFolders();
+    }
+}
+
+async function signup() {
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value.trim();
+    
+    if (!email || !password) {
+        showError('loginError', 'Veuillez remplir tous les champs');
+        return;
+    }
+    
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) {
+        showError('loginError', error.message);
+    } else {
+        showError('loginError', 'Inscription réussie ! Vérifiez votre email et connectez-vous.');
+        document.getElementById('signupForm').style.display = 'none';
+    }
+}
+
+async function logout() {
+    await supabase.auth.signOut();
+    currentUser = null;
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appContainer').style.display = 'none';
+}
+
+function toggleSignup() {
+    document.getElementById('signupForm').style.display = 
+        document.getElementById('signupForm').style.display === 'none' ? 'block' : 'none';
+}
+
+// ==================== UI ====================
+function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appContainer').style.display = 'block';
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabName).classList.add('active');
+    event.target.classList.add('active');
+}
+
+function showError(elementId, message) {
+    const el = document.getElementById(elementId);
+    el.textContent = message;
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+function showSuccess(elementId, message) {
+    const el = document.getElementById(elementId);
+    el.textContent = message;
+    el.classList.add('success');
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 3000);
+}
+
+// ==================== QCM ====================
+async function loadQCMs() {
+    const { data, error } = await supabase
+        .from('qcms')
+        .select('*')
+        .order('dateCreation', { ascending: false });
+    
+    if (error) {
+        console.error('Erreur chargement QCMs:', error);
+        return;
+    }
+    
+    const html = data.map(qcm => `
+        <div class="qcm-section">
+            <div class="qcm-header" onclick="toggleQCMQuestions(this)">
+                <span class="qcm-title">${qcm.titre}</span>
+                <span style="color: #999; font-size: 13px;">Entraînement: ${qcm.actifPourEntrainement ? '✅' : '❌'}</span>
+                <span class="qcm-toggle">▼</span>
+            </div>
+            <div class="qcm-questions">
+                <div id="questions-${qcm.id}" class="questions-container"></div>
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn btn-secondary btn-small" onclick="editQCM('${qcm.id}')">✏️ Éditer</button>
+                    <button class="btn btn-danger btn-small" onclick="deleteQCM('${qcm.id}')">🗑️ Supprimer</button>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('qcmList').innerHTML = html || '<p>Aucun QCM pour le moment</p>';
+    
+    // Charger les questions pour chaque QCM
+    for (const qcm of data) {
+        loadQCMQuestions(qcm.id);
+    }
+}
+
+async function loadQCMQuestions(qcmId) {
+    const { data, error } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('qcm_id', qcmId)
+        .order('id');
+    
+    if (error) return;
+    
+    const container = document.getElementById(`questions-${qcmId}`);
+    if (!container) return;
+    
+    const html = data.map((q, idx) => `
+        <div class="question-item">
+            <div class="question-text">Question ${idx + 1}: ${q.question}</div>
+            <div class="question-options">
+                ${q.options.map((opt, i) => `
+                    <span>${String.fromCharCode(65 + i)}. ${opt}</span>
+                `).join('')}
+            </div>
+            <div class="question-correct">
+                Réponses: ${q.reponsesCorrectes.map((r, i) => String.fromCharCode(65 + q.options.indexOf(r))).join(', ')}
+                ${q.isBonus ? ' ⭐ BONUS' : ''}
+            </div>
+            <div style="font-size: 12px; color: #999; margin-top: 8px;">⏱️ ${q.tempsLimite}s</div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = html;
+}
+
+function toggleQCMQuestions(headerEl) {
+    const questionsDiv = headerEl.nextElementSibling;
+    questionsDiv.classList.toggle('expanded');
+    headerEl.querySelector('.qcm-toggle').textContent = 
+        questionsDiv.classList.contains('expanded') ? '▲' : '▼';
+}
+
+function openQCMModal() {
+    editingQCMId = null;
+    questions = [];
+    document.getElementById('qcmTitre').value = '';
+    document.getElementById('qcmActif').checked = false;
+    document.getElementById('questionsList').innerHTML = '';
+    document.getElementById('qcmModal').classList.add('active');
+}
+
+function closeQCMModal() {
+    document.getElementById('qcmModal').classList.remove('active');
+}
+
+function addQuestion() {
+    const qId = 'q-' + Date.now();
+    questions.push({
+        id: qId,
+        question: '',
+        options: ['', '', '', ''],
+        reponsesCorrectes: [],
+        tempsLimite: 30,
+        isBonus: false
+    });
+    renderQuestions();
+}
+
+function renderQuestions() {
+    const html = questions.map((q, idx) => `
+        <div style="background: white; padding: 15px; margin-bottom: 10px; border-radius: 6px; border: 1px solid #ddd;">
+            <div class="form-group">
+                <label>Question ${idx + 1}</label>
+                <input type="text" value="${q.question}" onchange="questions[${idx}].question = this.value" placeholder="Énoncé de la question">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Options</label>
+                ${q.options.map((opt, i) => `
+                    <div style="display: flex; gap: 10px; margin-bottom: 8px; align-items: center;">
+                        <input type="text" value="${opt}" onchange="questions[${idx}].options[${i}] = this.value" placeholder="${String.fromCharCode(65 + i)}. Option" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                        <input type="checkbox" ${q.reponsesCorrectes.includes(opt) ? 'checked' : ''} onchange="updateCorrectAnswer(${idx}, ${i}, this.checked)" title="Réponse correcte">
+                    </div>
+                `).join('')}
+            </div>
+            <div style="display: flex; gap: 20px; margin-bottom: 10px;">
+                <div class="form-group" style="flex: 1; margin: 0;">
+                    <label>Temps (sec)</label>
+                    <input type="number" value="${q.tempsLimite}" onchange="questions[${idx}].tempsLimite = parseInt(this.value)" min="5" max="300" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="flex: 1; display: flex; align-items: flex-end;">
+                    <label style="display: flex; align-items: center;">
+                        <input type="checkbox" ${q.isBonus ? 'checked' : ''} onchange="questions[${idx}].isBonus = this.checked"> ⭐ Question Bonus
+                    </label>
+                </div>
+            </div>
+            <button class="btn btn-danger btn-small" onclick="removeQuestion(${idx})">Supprimer</button>
+        </div>
+    `).join('');
+    
+    document.getElementById('questionsList').innerHTML = html;
+}
+
+function updateCorrectAnswer(qIdx, optIdx, isChecked) {
+    const q = questions[qIdx];
+    const opt = q.options[optIdx];
+    
+    if (isChecked) {
+        if (!q.reponsesCorrectes.includes(opt)) {
+            q.reponsesCorrectes.push(opt);
+        }
+    } else {
+        q.reponsesCorrectes = q.reponsesCorrectes.filter(r => r !== opt);
+    }
+    renderQuestions();
+}
+
+function removeQuestion(idx) {
+    questions.splice(idx, 1);
+    renderQuestions();
+}
+
+async function saveQCM() {
+    const titre = document.getElementById('qcmTitre').value.trim();
+    const actif = document.getElementById('qcmActif').checked;
+    
+    if (!titre) {
+        showError('qcmModalError', 'Veuillez entrer un titre');
+        return;
+    }
+    
+    if (questions.length === 0) {
+        showError('qcmModalError', 'Ajoutez au moins une question');
+        return;
+    }
+    
+    // Vérifier que chaque question a au moins une réponse correcte
+    if (questions.some(q => q.reponsesCorrectes.length === 0)) {
+        showError('qcmModalError', 'Chaque question doit avoir au moins une réponse correcte');
+        return;
+    }
+    
+    if (questions.some(q => !q.question || q.options.some(o => !o))) {
+        showError('qcmModalError', 'Complétez toutes les questions et options');
+        return;
+    }
+    
+    try {
+        if (editingQCMId) {
+            // Éditer QCM existant
+            const { error } = await supabase
+                .from('qcms')
+                .update({ titre, actifPourEntrainement: actif })
+                .eq('id', editingQCMId);
+            
+            if (error) throw error;
+            
+            // Supprimer les anciennes questions
+            await supabase.from('questions').delete().eq('qcm_id', editingQCMId);
+        } else {
+            // Créer nouveau QCM
+            const { data, error } = await supabase
+                .from('qcms')
+                .insert([{ titre, actifPourEntrainement: actif }])
+                .select();
+            
+            if (error) throw error;
+            editingQCMId = data[0].id;
+        }
+        
+        // Insérer les questions
+        const questionsToInsert = questions.map(q => ({
+            qcm_id: editingQCMId,
+            question: q.question,
+            options: q.options,
+            reponsesCorrectes: q.reponsesCorrectes,
+            tempsLimite: q.tempsLimite,
+            isBonus: q.isBonus
+        }));
+        
+        const { error } = await supabase.from('questions').insert(questionsToInsert);
+        if (error) throw error;
+        
+        closeQCMModal();
+        loadQCMs();
+    } catch (error) {
+        showError('qcmModalError', error.message);
+    }
+}
+
+async function editQCM(qcmId) {
+    const { data: qcm, error: qcmError } = await supabase
+        .from('qcms')
+        .select('*')
+        .eq('id', qcmId)
+        .single();
+    
+    const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select('*')
+        .eq('qcm_id', qcmId);
+    
+    if (qcmError || questionsError) {
+        console.error('Erreur chargement:', qcmError || questionsError);
+        return;
+    }
+    
+    editingQCMId = qcmId;
+    document.getElementById('qcmTitre').value = qcm.titre;
+    document.getElementById('qcmActif').checked = qcm.actifPourEntrainement;
+    questions = questionsData;
+    renderQuestions();
+    document.getElementById('qcmModal').classList.add('active');
+}
+
+async function deleteQCM(qcmId) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce QCM ?')) return;
+    
+    const { error } = await supabase.from('qcms').delete().eq('id', qcmId);
+    if (error) {
+        alert('Erreur: ' + error.message);
+    } else {
+        loadQCMs();
+    }
+}
+
+// ==================== SESSIONS ====================
+async function loadSessions() {
+    const { data, error } = await supabase
+        .from('sessions')
+        .select('*, qcms(titre)')
+        .order('dateCreation', { ascending: false });
+    
+    if (error) {
+        console.error('Erreur:', error);
+        return;
+    }
+    
+    const html = data.map(session => `
+        <div class="session-item">
+            <div class="session-code">Code: ${session.id}</div>
+            <div class="session-info">📊 Statut: ${session.statut} | QCM: ${session.qcms?.titre || 'N/A'}</div>
+            <div class="session-info">👥 Participants: <span id="count-${session.id}">0</span> | Question: ${session.questionActive}</div>
+            <div class="session-actions">
+                <button class="btn btn-secondary btn-small" onclick="openSessionControl('${session.id}')">🎮 Contrôler</button>
+                <button class="btn btn-danger btn-small" onclick="deleteSession('${session.id}')">🗑️ Supprimer</button>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('sessionList').innerHTML = html || '<p>Aucune session pour le moment</p>';
+    
+    // Charger le nombre de participants
+    for (const session of data) {
+        loadParticipantCount(session.id);
+    }
+}
+
+async function loadParticipantCount(sessionId) {
+    const { count, error } = await supabase
+        .from('participants')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_id', sessionId);
+    
+    if (!error) {
+        const el = document.getElementById(`count-${sessionId}`);
+        if (el) el.textContent = count;
+    }
+}
+
+function openSessionModal() {
+    document.getElementById('sessionModalError').style.display = 'none';
+    loadQCMSelect();
+    document.getElementById('sessionModal').classList.add('active');
+}
+
+function closeSessionModal() {
+    document.getElementById('sessionModal').classList.remove('active');
+}
+
+async function loadQCMSelect() {
+    const { data, error } = await supabase.from('qcms').select('id, titre');
+    if (error) return;
+    
+    const select = document.getElementById('sessionQCM');
+    select.innerHTML = '<option value="">-- Choisir un QCM --</option>' + 
+        data.map(qcm => `<option value="${qcm.id}">${qcm.titre}</option>`).join('');
+}
+
+async function createSession() {
+    const qcmId = document.getElementById('sessionQCM').value;
+    if (!qcmId) {
+        showError('sessionModalError', 'Sélectionnez un QCM');
+        return;
+    }
+    
+    const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    const { error } = await supabase.from('sessions').insert([{
+        id: sessionId,
+        qcm_id: qcmId,
+        statut: 'en_attente'
+    }]);
+    
+    if (error) {
+        showError('sessionModalError', error.message);
+    } else {
+        closeSessionModal();
+        loadSessions();
+        alert(`Session créée ! Code: ${sessionId}`);
+    }
+}
+
+function openSessionControl(sessionId) {
+    alert('Contrôle session: ' + sessionId + ' (À implémenter)');
+}
+
+async function deleteSession(sessionId) {
+    if (!confirm('Supprimer cette session ?')) return;
+    
+    const { error } = await supabase.from('sessions').delete().eq('id', sessionId);
+    if (error) {
+        alert('Erreur: ' + error.message);
+    } else {
+        loadSessions();
+    }
+}
+
+// ==================== DOCUMENTATION ====================
+async function loadFolders() {
+    const { data, error } = await supabase
+        .from('folders')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('dateCreation', { ascending: false });
+    
+    if (error) {
+        console.error('Erreur:', error);
+        return;
+    }
+    
+    const html = data.map(folder => `
+        <div class="folder-item" onclick="toggleFolderDetails('${folder.id}', this)">
+            <span class="folder-name">📁 ${folder.nom}</span>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); renameFolder('${folder.id}')">✏️</button>
+                <button class="btn btn-danger btn-small" onclick="event.stopPropagation(); deleteFolder('${folder.id}')">🗑️</button>
+            </div>
+        </div>
+        <div id="details-${folder.id}" class="folder-details">
+            <button class="btn btn-secondary" onclick="closeFolder('${folder.id}')" style="margin-bottom: 15px;">← Retour</button>
+            <div class="upload-zone" onclick="document.getElementById('fileInput-${folder.id}').click()">
+                <p>📤 Cliquez pour uploader un fichier</p>
+                <input type="file" id="fileInput-${folder.id}" onchange="uploadFile('${folder.id}', event)">
+            </div>
+            <ul class="file-list" id="files-${folder.id}"></ul>
+        </div>
+    `).join('');
+    
+    document.getElementById('folderList').innerHTML = html || '<p>Aucun dossier pour le moment</p>';
+    
+    // Charger les fichiers
+    for (const folder of data) {
+        loadFolderFiles(folder.id);
+    }
+}
+
+function toggleFolderDetails(folderId, folderEl) {
+    const details = document.getElementById(`details-${folderId}`);
+    details.classList.toggle('expanded');
+}
+
+function closeFolder(folderId) {
+    const details = document.getElementById(`details-${folderId}`);
+    details.classList.remove('expanded');
+}
+
+async function loadFolderFiles(folderId) {
+    const { data, error } = await supabase.storage
+        .from('documents')
+        .list(`${currentUser.id}/${folderId}`);
+    
+    if (error) {
+        console.error('Erreur:', error);
+        return;
+    }
+    
+    const fileList = document.getElementById(`files-${folderId}`);
+    if (!fileList) return;
+    
+    const html = data.filter(f => f.name).map(file => `
+        <li class="file-item">
+            <span class="file-name">📄 ${file.name}</span>
+            <div class="file-actions">
+                <a href="${supabase.storage.from('documents').getPublicUrl(`${currentUser.id}/${folderId}/${file.name}`).data.publicUrl}" target="_blank" class="btn btn-secondary btn-small">🔗</a>
+                <button class="btn btn-danger btn-small" onclick="deleteFile('${folderId}', '${file.name}')">🗑️</button>
+            </div>
+        </li>
+    `).join('');
+    
+    fileList.innerHTML = html || '<li style="padding: 10px; color: #999;">Aucun fichier</li>';
+}
+
+function openFolderModal() {
+    document.getElementById('folderName').value = '';
+    document.getElementById('folderModalError').style.display = 'none';
+    document.getElementById('folderModal').classList.add('active');
+}
+
+function closeFolderModal() {
+    document.getElementById('folderModal').classList.remove('active');
+}
+
+async function createFolder() {
+    const nom = document.getElementById('folderName').value.trim();
+    if (!nom) {
+        showError('folderModalError', 'Entrez un nom');
+        return;
+    }
+    
+    const { error } = await supabase.from('folders').insert([{
+        user_id: currentUser.id,
+        nom
+    }]);
+    
+    if (error) {
+        showError('folderModalError', error.message);
+    } else {
+        closeFolderModal();
+        loadFolders();
+    }
+}
+
+async function uploadFile(folderId, event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const filePath = `${currentUser.id}/${folderId}/${file.name}`;
+    
+    const { error } = await supabase.storage
+        .from('documents')
+        .upload(filePath, file, { upsert: true });
+    
+    if (error) {
+        alert('Erreur upload: ' + error.message);
+    } else {
+        loadFolderFiles(folderId);
+    }
+}
+
+async function deleteFile(folderId, fileName) {
+    if (!confirm('Supprimer ce fichier ?')) return;
+    
+    const { error } = await supabase.storage
+        .from('documents')
+        .remove([`${currentUser.id}/${folderId}/${fileName}`]);
+    
+    if (error) {
+        alert('Erreur: ' + error.message);
+    } else {
+        loadFolderFiles(folderId);
+    }
+}
+
+async function deleteFolder(folderId) {
+    if (!confirm('Supprimer ce dossier et tous ses fichiers ?')) return;
+    
+    // Supprimer les fichiers
+    const { data: files } = await supabase.storage
+        .from('documents')
+        .list(`${currentUser.id}/${folderId}`);
+    
+    if (files && files.length > 0) {
+        const filePaths = files.filter(f => f.name).map(f => `${currentUser.id}/${folderId}/${f.name}`);
+        await supabase.storage.from('documents').remove(filePaths);
+    }
+    
+    // Supprimer le dossier de la BD
+    const { error } = await supabase.from('folders').delete().eq('id', folderId);
+    if (error) {
+        alert('Erreur: ' + error.message);
+    } else {
+        loadFolders();
+    }
+}
+
+// Initial check
+supabase.auth.onAuthStateChange(async (event, session) => {
+    if (session) {
+        currentUser = session.user;
+        showApp();
+        loadQCMs();
+        loadSessions();
+        loadFolders();
+    }
+});
+
+// Auto-login si déjà connecté
+supabase.auth.getSession().then(({ data: { session } }) => {
+    if (session) {
+        currentUser = session.user;
+        showApp();
+        loadQCMs();
+        loadSessions();
+        loadFolders();
+    }
+});
+</script>
+
+</body>
+</html>
